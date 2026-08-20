@@ -53,12 +53,36 @@ function saveSupabaseConfig(url, anonKey) {
 
 // Instância do Cliente Supabase
 let supabaseClient = null;
+let supabaseClientConfigKey = '';
+let defaultPersistSession = true;
+
+function normalizeSupabaseUrl(url) {
+  let u = String(url || '').trim();
+  u = u.replace(/\/+$/, '');
+  u = u.replace(/\/rest\/v1$/i, '');
+  return u;
+}
+
+// Define se a sessão deve ficar salva no dispositivo ("Manter conectado").
+// false => sessão apenas em memória (nada é gravado no navegador).
+function setPersistSessionDefault(persist) {
+  defaultPersistSession = !!persist;
+}
 
 function initSupabaseClient() {
   const config = getSupabaseConfig();
-  if (config && config.url && config.anonKey && typeof window !== 'undefined' && window.supabase) {
+  const persist = defaultPersistSession;
+  const normalizedUrl = config && config.url ? normalizeSupabaseUrl(config.url) : '';
+  const key = (normalizedUrl && config.anonKey) ? `${normalizedUrl}|${persist ? 'persist' : 'memory'}` : '';
+
+  if (supabaseClient && supabaseClientConfigKey === key) return supabaseClient;
+
+  if (normalizedUrl && config.anonKey && typeof window !== 'undefined' && window.supabase) {
     try {
-      supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+      supabaseClient = window.supabase.createClient(normalizedUrl, config.anonKey, {
+        auth: { persistSession: persist }
+      });
+      supabaseClientConfigKey = key;
     } catch (err) {
       console.warn("Erro ao instanciar cliente Supabase:", err);
       supabaseClient = null;
@@ -475,6 +499,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     getSupabaseConfig,
     saveSupabaseConfig,
+    setPersistSessionDefault,
     signUpUser,
     signInUser,
     signInWithGoogle,

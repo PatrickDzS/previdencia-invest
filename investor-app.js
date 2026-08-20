@@ -89,7 +89,7 @@ function bootstrapApp(user) {
   initRetirementSimulator();
   initPerformanceComparator();
   initTaxPage();
-  if (!window.location.hash) window.location.hash = '#/dashboard';
+  history.replaceState(null, '', window.location.pathname + window.location.search + '#/dashboard');
   renderAllViews();
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
 
@@ -234,6 +234,9 @@ function unlockApp(user, isLocal = false) {
 
 function lockApp() {
   authGateUnlocked = false;
+  if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
   setGateVisible(true);
   switchAuthView('login');
   if (!isSupabaseConfigured()) {
@@ -280,6 +283,8 @@ function initAuthGate() {
     const btn = document.getElementById('btn-login-submit');
     setAuthLoading(btn, true);
     try {
+      const remember = document.getElementById('login-remember')?.checked ?? true;
+      if (typeof setPersistSessionDefault === 'function') setPersistSessionDefault(remember);
       const data = await signInUser(email, password);
       setAuthLoading(btn, false);
       if (data?.user) { unlockApp(data.user); return; }
@@ -338,6 +343,9 @@ function initAuthGate() {
   googleBtn?.addEventListener('click', async () => {
     setAuthLoading(googleBtn, true);
     try {
+      const remember = document.getElementById('login-remember')?.checked ?? true;
+      if (typeof setPersistSessionDefault === 'function') setPersistSessionDefault(remember);
+      try { sessionStorage.setItem('pv_remember', remember ? '1' : '0'); } catch (e) {}
       await signInWithGoogle();
     } catch (err) {
       setAuthLoading(googleBtn, false);
@@ -349,6 +357,11 @@ function initAuthGate() {
   localBtn?.addEventListener('click', () => unlockApp(null, true));
 
   // Listener de sessão (login, logout, OAuth redirect e refresh)
+  try {
+    if (sessionStorage.getItem('pv_remember') === '0' && typeof setPersistSessionDefault === 'function') {
+      setPersistSessionDefault(false);
+    }
+  } catch (e) {}
   if (typeof onAuthStateChange === 'function') {
     onAuthStateChange((event, user) => {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && user) {
@@ -379,6 +392,9 @@ function initAuthGate() {
     return;
   }
 
+  if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
   setGateVisible(true);
 }
 
@@ -1719,7 +1735,6 @@ initActionButtons = function() {
 
 function initProfilePage() {
   const saveBtn = document.getElementById('btn-save-profile');
-  const pwBtn = document.getElementById('btn-change-password');
   const logoutBtn = document.getElementById('btn-logout');
   const avatarFile = document.getElementById('profile-avatar-file');
   const btnRemove = document.getElementById('btn-remove-avatar');
@@ -1789,38 +1804,6 @@ function initProfilePage() {
       }
     }
     alert(`Perfil salvo para ${name.value.trim()}. Sincronização com o Supabase será ativada em breve.`);
-  });
-
-  pwBtn?.addEventListener('click', async () => {
-    const current = document.getElementById('profile-form-current');
-    const newPw = document.getElementById('profile-form-new');
-    const confirm = document.getElementById('profile-form-confirm');
-    if (!current?.value || !newPw?.value) {
-      alert('Preencha a senha atual e a nova senha.');
-      return;
-    }
-    if (newPw.value.length < 6) {
-      alert('A nova senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-    if (newPw.value !== confirm?.value) {
-      alert('A nova senha e a confirmação não coincidem.');
-      return;
-    }
-    if (typeof updateUserPassword === 'function') {
-      try {
-        await updateUserPassword(newPw.value);
-        current.value = '';
-        newPw.value = '';
-        confirm.value = '';
-        alert('Senha alterada com sucesso.');
-        return;
-      } catch (err) {
-        alert('Erro ao alterar a senha: ' + ((err && err.message) || 'verifique a senha atual.'));
-        return;
-      }
-    }
-    alert('Alteração de senha disponível após a conexão com o Supabase.');
   });
 
   logoutBtn?.addEventListener('click', () => {
