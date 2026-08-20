@@ -89,8 +89,12 @@ function bootstrapApp(user) {
   initRetirementSimulator();
   initPerformanceComparator();
   initTaxPage();
+  if (!window.location.hash) window.location.hash = '#/dashboard';
   renderAllViews();
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
+
+  window.addEventListener('hashchange', handleHashChange);
+  handleHashChange();
 
   const metricGrid = document.querySelector('#tab-dashboard > .grid');
   if (metricGrid) staggerIn(metricGrid, 80);
@@ -438,12 +442,50 @@ function initMenu() {
   });
 }
 
+/* ============================================================
+   NAVEGAÇÃO POR HASH - Rotas de cada aba (#/dashboard, #/noticias...)
+   ============================================================ */
+const TAB_HASH_MAP = {
+  dashboard: 'tab-dashboard',
+  classes: 'tab-classes',
+  notificacoes: 'tab-notificacoes',
+  radar: 'tab-radar',
+  noticias: 'tab-noticias',
+  mdi: 'tab-mdi',
+  raiox: 'tab-raiox',
+  performance: 'tab-performance',
+  academia: 'tab-academia',
+  liberdade: 'tab-liberdade',
+  fiscal: 'tab-fiscal',
+  perfil: 'tab-perfil',
+  config: 'tab-config'
+};
+const REVERSE_TAB_HASH_MAP = {};
+Object.keys(TAB_HASH_MAP).forEach(route => {
+  REVERSE_TAB_HASH_MAP[TAB_HASH_MAP[route]] = route;
+});
+
+let activateTabByButton = null;
+
+function handleHashChange() {
+  if (!authGateUnlocked || typeof activateTabByButton !== 'function') return;
+  const route = window.location.hash.replace(/^#\/?/, '') || 'dashboard';
+  const tabId = TAB_HASH_MAP[route] || 'tab-dashboard';
+  const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('data-tab') === tabId);
+  if (btn) {
+    activateTabByButton(btn, true);
+    return;
+  }
+  const headerNotifBtn = document.getElementById('btn-header-notifications');
+  if (tabId === 'tab-notificacoes' && headerNotifBtn) activateTabByButton(headerNotifBtn, true);
+}
+
 function initNavigation() {
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
   const headerNotifBtn = document.getElementById('btn-header-notifications');
 
-  const activateTab = (btn) => {
+  const activateTab = (btn, fromHash = false) => {
     const targetTab = btn.getAttribute('data-tab');
     const isHeaderNotif = btn === headerNotifBtn;
 
@@ -486,11 +528,20 @@ function initNavigation() {
     }
 
     if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
+
+    if (!fromHash && !isHeaderNotif && targetTab) {
+      const route = REVERSE_TAB_HASH_MAP[targetTab] || 'dashboard';
+      if (window.location.hash !== `#/${route}`) {
+        window.location.hash = `#/${route}`;
+      }
+    }
   };
 
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => activateTab(btn));
   });
+
+  activateTabByButton = activateTab;
 
   headerNotifBtn?.addEventListener('click', () => activateTab(headerNotifBtn));
 
