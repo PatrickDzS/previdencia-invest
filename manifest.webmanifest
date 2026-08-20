@@ -1,0 +1,50 @@
+{
+  "id": "/",
+  "name": "Previdência Invest - Gestão Inteligente & Raio-X de Ativos",
+  "short_name": "PrevidênciaInvest",
+  "description": "Plataforma de acompanhamento patrimonial focada em geração de renda passiva, com Raio-X de Ativos, Comparador de Classes (3/4/11), Radar Bazin, MDI e Simulador de Liberdade Financeira.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "theme_color": "#F3F4F6",
+  "background_color": "#F3F4F6",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Aporte",
+      "short_name": "Aporte",
+      "url": "/#aporte",
+      "description": "Registrar um novo aporte na carteira"
+    },
+    {
+      "name": "Radar do Pregão",
+      "short_name": "Radar",
+      "url": "/#radar",
+      "description": "Ver oportunidades do pregão pelo método Bazin"
+    }
+  ]
+}

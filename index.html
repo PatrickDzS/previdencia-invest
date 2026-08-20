@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Previdência Invest - Gestão Inteligente & Comparador de Classes (3, 4 e 11)</title>
+  <meta name="description" content="Gestão Previdenciária Inteligente: Raio-X de Ativos, Comparador de Classes (3/4/11), Radar do Pregão (Bazin), Mapa do Dividendo e Simulador de Liberdade Financeira.">
+  <meta name="theme-color" content="#F3F4F6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Previdência Invest">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'media',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#ecfdf5', 500: '#10b981', 600: '#059669', 700: '#047857' }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(229, 231, 235, 0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.6); border-radius: 4px; }
+    .notif-filter-btn { transition: box-shadow 0.15s ease, background-color 0.15s ease, transform 0.15s ease, filter 0.15s ease; }
+    .notif-filter-btn:hover { transform: translateY(-1px); filter: brightness(1.12); }
+    .notif-filter-btn.active-notif-filter { box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.55); }
+    .tab-btn span { white-space: nowrap; }
+
+    .tab-content { animation: tab-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    @keyframes tab-enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+    .card-primary {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 1) 60%);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .card-primary:hover { border-color: rgba(16, 185, 129, 0.35); }
+  </style>
+  <link rel="stylesheet" href="/src/styles/animations.css">
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen antialiased flex flex-col custom-scrollbar overflow-x-hidden">
+
+  <!-- Login Gate: primeira tela acessada (autenticação obrigatória) -->
+  <div id="login-gate" class="fixed inset-0 z-[80] bg-gray-100 overflow-y-auto custom-scrollbar" aria-label="Tela de acesso">
+    <div class="min-h-full w-full relative flex items-center justify-center p-4">
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-emerald-500/[0.03] blur-[120px]"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
+      </div>
+
+      <div class="relative w-full max-w-md anim-slide-up">
+        <div class="bg-white/90 backdrop-blur-xl border border-gray-200/80 rounded-2xl shadow-2xl shadow-black/10 overflow-hidden">
+          <!-- Cabeçalho da marca -->
+          <div class="p-8 pb-6 text-center">
+            <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 mb-4">
+              <i data-lucide="trending-up" class="w-8 h-8 text-gray-950"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+              Previdência<span class="text-emerald-400">Invest</span>
+            </h1>
+            <p class="text-xs text-gray-500 mt-2">Gestão inteligente de dividendos</p>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <!-- Mensagens de status -->
+            <div id="auth-message" class="hidden text-xs rounded-xl px-3 py-2.5 font-medium"></div>
+
+            <!-- ===== FORM LOGIN ===== -->
+            <form id="form-login" class="space-y-3" novalidate>
+              <div>
+                <label for="login-email" class="block text-xs font-medium text-gray-500 mb-1.5">E-mail</label>
+                <input id="login-email" type="email" required autocomplete="email" placeholder="seu@email.com" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+              </div>
+              <div>
+                <label for="login-password" class="block text-xs font-medium text-gray-500 mb-1.5">Senha</label>
+                <input id="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+              </div>
+              <div class="flex items-center justify-between pt-0.5">
+                <label class="flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer">
+                  <input id="login-remember" type="checkbox" class="accent-emerald-500 w-3.5 h-3.5">
+                  Manter conectado
+                </label>
+                <button type="button" id="btn-goto-forgot" class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-600 transition">Esqueci minha senha</button>
+              </div>
+              <button type="submit" id="btn-login-submit" class="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                <span>Entrar</span>
+              </button>
+            </form>
+
+            <!-- ===== FORM CADASTRO ===== -->
+            <form id="form-signup" class="space-y-3 hidden" novalidate>
+              <div>
+                <label for="signup-name" class="block text-xs font-medium text-gray-500 mb-1.5">Nome</label>
+                <input id="signup-name" type="text" required autocomplete="name" placeholder="Seu nome completo" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+              </div>
+              <div>
+                <label for="signup-email" class="block text-xs font-medium text-gray-500 mb-1.5">E-mail</label>
+                <input id="signup-email" type="email" required autocomplete="email" placeholder="seu@email.com" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="signup-password" class="block text-xs font-medium text-gray-500 mb-1.5">Senha</label>
+                  <input id="signup-password" type="password" required minlength="6" autocomplete="new-password" placeholder="Mín. 6 caracteres" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+                </div>
+                <div>
+                  <label for="signup-confirm" class="block text-xs font-medium text-gray-500 mb-1.5">Confirmar senha</label>
+                  <input id="signup-confirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Repita a senha" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+                </div>
+              </div>
+              <button type="submit" id="btn-signup-submit" class="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>Criar conta</span>
+              </button>
+              <p class="text-[11px] text-gray-500 text-center">Já tem conta? <button type="button" id="btn-goto-login" class="font-medium text-emerald-400 hover:text-emerald-600 transition">Fazer login</button></p>
+            </form>
+
+            <!-- ===== FORM RECUPERAR SENHA ===== -->
+            <form id="form-forgot" class="space-y-3 hidden" novalidate>
+              <p class="text-[11px] text-gray-500 leading-relaxed">Enviaremos um link de redefinição para o seu e-mail.</p>
+              <div>
+                <label for="forgot-email" class="block text-xs font-medium text-gray-500 mb-1.5">E-mail</label>
+                <input id="forgot-email" type="email" required autocomplete="email" placeholder="seu@email.com" class="w-full bg-white border border-gray-300/80 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition">
+              </div>
+              <button type="submit" id="btn-forgot-submit" class="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+                <span>Enviar link</span>
+              </button>
+              <p class="text-[11px] text-gray-500 text-center"><button type="button" id="btn-back-to-login" class="font-medium text-emerald-400 hover:text-emerald-600 transition">Voltar ao login</button></p>
+            </form>
+
+            <!-- Divisor -->
+            <div id="auth-divider" class="flex items-center gap-3 py-1">
+              <div class="flex-1 h-px bg-gray-200"></div>
+              <span class="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">ou</span>
+              <div class="flex-1 h-px bg-gray-200"></div>
+            </div>
+
+            <!-- Google OAuth -->
+            <button type="button" id="btn-login-google" class="w-full flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-xl bg-white border border-gray-300/80 hover:border-gray-300 hover:bg-gray-200/80 text-gray-600 text-sm font-medium transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+              <svg class="w-4 h-4" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.2 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.2 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2C36.9 40.2 44 35 44 24c0-1.3-.1-2.6-.4-3.9z"/>
+              </svg>
+              <span>Entrar com Google</span>
+            </button>
+
+            <!-- Rodapé do card -->
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-gray-200/80">
+              <button type="button" id="btn-goto-signup" class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-600 transition flex items-center gap-1.5">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                Criar conta
+              </button>
+              <button type="button" id="btn-local-mode" class="hidden text-[11px] font-semibold text-gray-500 hover:text-gray-600 transition flex items-center gap-1.5">
+                <i data-lucide="wifi-off" class="w-3.5 h-3.5"></i>
+                Continuar sem login (Modo Local)
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="text-center text-[10px] text-gray-600 mt-4">Seus dados ficam protegidos com autenticação segura</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 lg:ml-64 py-3 transition-all">
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 flex flex-wrap lg:flex-nowrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="flex items-center gap-3">
+        <button id="btn-menu-toggle" title="Abrir menu" aria-label="Abrir menu" aria-expanded="false" class="lg:hidden p-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 transition">
+          <i data-lucide="menu" class="w-5 h-5" id="icon-menu-toggle"></i>
+        </button>
+        <div class="w-10 h-10 hidden sm:flex rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="trending-up" class="w-6 h-6 text-gray-950"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="font-bold text-base sm:text-lg tracking-tight truncate min-w-0 text-gray-900">
+            Previdência<span class="text-emerald-400">Invest</span>
+          </h1>
+        </div>
+      </div>
+
+      <div class="hidden 2xl:flex items-center gap-4 bg-white/60 border border-gray-200/60 rounded-lg px-3 py-1.5 text-xs text-gray-500">
+        <div class="flex items-center gap-1.5"><span>IBOV:</span><span class="mono font-medium text-gray-600">—</span></div>
+        <div class="h-3 w-[1px] bg-gray-300/60"></div>
+        <div class="flex items-center gap-1.5"><span>Dólar:</span><span class="mono font-medium text-gray-600">—</span></div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-nowrap overflow-x-auto custom-scrollbar py-2">
+        
+        <span id="pwa-offline-badge" title="Sem conexão - exibindo dados salvos" class="hidden items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-500/10 text-rose-600 border border-rose-500/30 transition text-xs font-semibold">
+          <i data-lucide="wifi-off" class="w-4 h-4"></i>
+          <span>Offline</span>
+        </span>
+
+        <button id="btn-header-notifications" data-tab="tab-notificacoes" title="Centro de Notificações & Auditoria" class="relative flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 transition text-xs font-semibold">
+          <i data-lucide="bell" class="w-4 h-4 text-amber-400"></i>
+          <span class="hidden sm:inline">Alertas</span>
+          <span id="badge-header-notif-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-rose-500 text-gray-900 flex items-center justify-center">0</span>
+        </button>
+
+        <button id="btn-install-app" title="Instalar aplicativo" class="hidden items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 border border-indigo-500/30 transition text-xs font-semibold">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Instalar</span>
+        </button>
+        
+        <button id="btn-open-importer" title="Importar Extrato B3 ou Planilha CSV" class="hidden min-[420px]:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 transition text-xs font-semibold">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+          <span>Importar</span>
+        </button>
+
+        <button id="btn-export-backup" title="Exportar Backup JSON" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 transition text-xs font-semibold">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Backup</span>
+        </button>
+        <button id="btn-import-backup" title="Restaurar Backup JSON" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 transition text-xs font-semibold">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <span>Restaurar</span>
+          <input type="file" id="file-import-input" accept=".json" class="hidden">
+        </button>
+        <button id="btn-add-asset" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-gray-950 transition text-xs font-semibold">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Novo Aporte</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar / Menu Lateral (fixo no desktop, drawer no mobile) -->
+  <div id="menu-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden hidden"></div>
+  <aside id="sidebar-menu" aria-label="Menu principal" class="fixed inset-y-0 left-0 w-64 z-40 bg-white border-r border-gray-200 p-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar transition-transform duration-300 -translate-x-full lg:translate-x-0">
+    <div class="flex items-center justify-between mb-4 lg:hidden">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="trending-up" class="w-5 h-5 text-gray-950"></i>
+        </div>
+        <span class="font-bold text-sm tracking-tight text-gray-900">Previdência<span class="text-emerald-400">Invest</span></span>
+      </div>
+      <button id="btn-menu-close" title="Fechar menu" aria-label="Fechar menu" class="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <span class="hidden lg:flex items-center gap-2 px-3 py-2 mb-1 text-gray-500 text-[10px] font-medium uppercase tracking-widest">
+      Menu
+    </span>
+
+    <button data-tab="tab-dashboard" class="tab-btn active-tab flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition text-sm">
+      <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i><span>Dashboard & Carteira</span>
+    </button>
+    <button data-tab="tab-classes" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="scale" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>Comparador de Classes</span>
+    </button>
+    <button data-tab="tab-radar" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="crosshair" class="w-4 h-4 text-amber-400 shrink-0"></i><span>Radar do Pregão</span>
+    </button>
+    <button data-tab="tab-noticias" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="newspaper" class="w-4 h-4 text-sky-400 shrink-0"></i><span>Notícias do Mercado</span>
+    </button>
+    <button data-tab="tab-mdi" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="calendar" class="w-4 h-4 text-indigo-400 shrink-0"></i><span>Mapa do Dividendo</span>
+    </button>
+    <button data-tab="tab-raiox" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="microscope" class="w-4 h-4 text-cyan-400 shrink-0"></i><span>Raio-X de Ativos</span>
+    </button>
+    <button data-tab="tab-performance" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="bar-chart-3" class="w-4 h-4 text-sky-400 shrink-0"></i><span>Performance</span>
+    </button>
+    <button data-tab="tab-academia" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>Academia do Investidor</span>
+    </button>
+    <button data-tab="tab-liberdade" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="plane" class="w-4 h-4 text-pink-400 shrink-0"></i><span>Liberdade Financeira</span>
+    </button>
+    <button data-tab="tab-fiscal" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
+      <i data-lucide="receipt" class="w-4 h-4 text-yellow-400 shrink-0"></i><span>IR & DARF</span>
+    </button>
+
+    <!-- Perfil & Configuração -->
+    <div class="mt-auto pt-4 border-t border-gray-200/80 space-y-1">
+      <button data-tab="tab-perfil" id="profile-card" class="tab-btn flex items-center gap-3 px-2.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition text-sm w-full">
+        <div id="profile-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shrink-0 overflow-hidden">
+          <img id="profile-avatar-img" src="" alt="Avatar" class="hidden w-full h-full object-cover">
+          <i data-lucide="user" id="profile-avatar-icon" class="w-4 h-4 text-gray-950"></i>
+        </div>
+        <span id="profile-name" class="truncate font-semibold text-gray-900">Perfil</span>
+      </button>
+      <button data-tab="tab-config" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm w-full">
+        <i data-lucide="settings" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+        <span>Configuração</span>
+      </button>
+    </div>
+
+    <div class="pt-3 text-[10px] text-gray-600 text-center px-2">
+      v1 · Funciona offline
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 lg:ml-64 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto p-4 lg:p-8 space-y-6 relative">
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card Principal: Patrimônio -->
+        <div class="card-primary rounded-2xl p-5 relative overflow-hidden shadow-xl hover:shadow-emerald-500/10 hover:scale-[1.01] transition-all duration-300">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/[0.06] rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+            <span>Patrimônio Total</span>
+            <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"><i data-lucide="wallet" class="w-4 h-4"></i></div>
+          </div>
+          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-total-patrimony">R$ 0,00</div>
+          <div class="mt-3 flex items-center gap-2 text-xs font-medium">
+            <span class="text-emerald-400 flex items-center gap-1" id="metric-total-return"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +0,00%</span>
+            <span class="text-gray-500">rentabilidade total</span>
+          </div>
+        </div>
+
+        <!-- Renda Mensal -->
+        <div class="bg-white border border-gray-200/80 rounded-2xl p-5 relative overflow-hidden shadow-lg hover:border-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
+          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+            <span>Renda Mensal Estimada</span>
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400"><i data-lucide="coins" class="w-4 h-4"></i></div>
+          </div>
+          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-monthly-dividend">R$ 0,00 <span class="text-xs font-medium text-gray-500">/mês</span></div>
+          <div class="mt-3 metric-value text-xs font-medium text-indigo-400/80" id="metric-annual-dividend">R$ 0,00 / ano projetado</div>
+        </div>
+
+        <!-- Yield on Cost -->
+        <div class="bg-white border border-gray-200/80 rounded-2xl p-5 relative overflow-hidden shadow-lg hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300">
+          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+            <span>Yield on Cost (YoC)</span>
+            <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="percent" class="w-4 h-4"></i></div>
+          </div>
+          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-yoc-average">0,00% <span class="text-xs font-medium text-gray-500">a.a.</span></div>
+          <div class="mt-3 text-xs text-amber-400/80">Yield sobre custo de aquisição</div>
+        </div>
+
+        <!-- Meta de Liberdade -->
+        <div class="bg-white border border-gray-200/80 rounded-2xl p-5 relative overflow-hidden shadow-lg hover:border-pink-500/20 hover:shadow-lg hover:shadow-pink-500/5 transition-all duration-300">
+          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+            <span>Meta de Liberdade</span>
+            <div class="p-2 rounded-lg bg-pink-500/10 text-pink-400"><i data-lucide="target" class="w-4 h-4"></i></div>
+          </div>
+          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-freedom-progress">0,0%</div>
+          <div class="w-full bg-gray-200/80 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div id="metric-freedom-bar" class="bg-gradient-to-r from-pink-500 to-rose-400 h-1.5 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Alert Box -->
+      <div id="daily-action-box" class="bg-white border border-emerald-500/20 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+        <div class="flex items-start gap-4">
+          <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              Sugestão de Aporte
+            </h3>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed" id="daily-action-recommendation">
+              Calculando oportunidade com base no Preço Teto de Bazin...
+            </p>
+          </div>
+        </div>
+        <button id="btn-quick-rebalance" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition shrink-0 active:scale-95">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          <span>Simular Aporte</span>
+        </button>
+      </div>
+
+      <!-- Assets Table -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-semibold text-gray-900 tracking-tight">Ativos da Carteira</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Cotações, preço médio e preço teto de Bazin</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 pb-1 text-xs">
+            <button data-filter="ALL" class="asset-filter-btn active-filter flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"></i> Todos</button>
+            <button data-filter="ACAO" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="trending-up" class="w-3.5 h-3.5 shrink-0"></i> Ações</button>
+            <button data-filter="FII_TIJOLO" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="building-2" class="w-3.5 h-3.5 shrink-0"></i> FIIs Tijolo</button>
+            <button data-filter="FII_PAPEL" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i> FIIs Papel</button>
+            <button data-filter="STOCK_USD" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="globe" class="w-3.5 h-3.5 shrink-0"></i> Internacional</button>
+            <button data-filter="RENDA_FIXA" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="percent" class="w-3.5 h-3.5 shrink-0"></i> Renda Fixa</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100/60 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200">
+              <tr>
+                <th class="py-3 px-4">Ativo / Ticker</th>
+                <th class="py-3 px-4">Classe</th>
+                <th class="py-3 px-4 text-right">Qtd</th>
+                <th class="py-3 px-4 text-right">Preço Médio</th>
+                <th class="py-3 px-4 text-right">Cotação Atual</th>
+                <th class="py-3 px-4 text-right">Preço Teto (Bazin)</th>
+                <th class="py-3 px-4 text-right">Margem Segurança</th>
+                <th class="py-3 px-4 text-right">Yield on Cost</th>
+                <th class="py-3 px-4 text-right">Total (R$)</th>
+                <th class="py-3 px-4 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="assets-table-body" class="divide-y divide-gray-200/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: COMPARADOR DE CLASSES (3 vs 4 vs 11) -->
+    <section id="tab-classes" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+            Comparador de Classes
+          </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              Qual classe (<span class="text-emerald-400 font-medium">ON</span>, <span class="text-emerald-400 font-medium">PN</span> ou <span class="text-emerald-400 font-medium">UNIT</span>) está com maior desconto e melhor Dividend Yield por real investido?
+            </p>
+        </div>
+
+        <!-- Class Comparator Cards Grid -->
+        <div id="share-classes-container" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: RADAR DO PREGÃO -->
+    
+    <!-- TAB: ALERTAS & AUDITORIA DE ATIVOS -->
+    <section id="tab-notificacoes" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-col gap-4 border-b border-gray-200 pb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+              Alertas & Auditoria
+            </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              Ativos com <span class="text-rose-400 font-medium">risco</span>, <span class="text-emerald-400 font-medium">oportunidades</span> e contagem regressiva de <span class="text-indigo-400 font-medium">Data COM</span>.
+            </p>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <button data-notif-filter="ALL" class="notif-filter-btn active-notif-filter flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"></i> Todos</button>
+            <button data-notif-filter="RISK" class="notif-filter-btn flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i> Riscos & Ruins</button>
+            <button data-notif-filter="OPPORTUNITY" class="notif-filter-btn flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="trending-up" class="w-3.5 h-3.5 shrink-0"></i> Oportunidades</button>
+            <button data-notif-filter="DIVIDEND" class="notif-filter-btn flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="calendar" class="w-3.5 h-3.5 shrink-0"></i> Proventos</button>
+          </div>
+        </div>
+
+        <!-- Notification Cards Grid -->
+        <div id="notifications-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-radar" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+              Radar do Pregão
+            </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              Ativos com margem de segurança para no mínimo <span class="text-emerald-400 font-medium">6% a.a. em dividendos</span> e progresso do <span class="text-amber-400 font-medium">Número Mágico</span>.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200">
+            <span class="text-xs text-gray-500 pl-2">Aporte:</span>
+            <input type="number" id="input-rebalance-amount" value="1500" class="w-28 bg-white border border-gray-300/80 rounded-lg px-2.5 py-1 text-sm mono font-medium text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <button id="btn-run-rebalance" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">Calcular</button>
+          </div>
+        </div>
+
+        <div id="rebalance-orders-container" class="bg-gray-100/80 border border-gray-200/80 rounded-xl p-4 space-y-3">
+          <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <i data-lucide="shopping-cart" class="w-4 h-4 text-emerald-400"></i>
+            Ordem de Compra Recomendada para o Pregão de Hoje:
+          </h3>
+          <div id="rebalance-orders-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100/60 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200">
+              <tr>
+                <th class="py-3 px-4">Ativo</th>
+                <th class="py-3 px-4 text-right">Cotação Pregão</th>
+                <th class="py-3 px-4 text-right">Preço Teto Bazin</th>
+                <th class="py-3 px-4 text-right">Margem Segurança</th>
+                <th class="py-3 px-4 text-center">Número Mágico (Cotas)</th>
+                <th class="py-3 px-4 text-center">Progresso Bola de Neve</th>
+                <th class="py-3 px-4 text-center">Diagnóstico</th>
+              </tr>
+            </thead>
+            <tbody id="radar-table-body" class="divide-y divide-gray-200/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: NOTÍCIAS DO MERCADO -->
+    <section id="tab-noticias" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+              Notícias do Mercado
+            </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              Compilado diário: <span class="text-sky-400 font-medium">bolsa</span>, <span class="text-sky-400 font-medium">juros</span>, <span class="text-sky-400 font-medium">câmbio</span>, <span class="text-sky-400 font-medium">FIIs</span> e <span class="text-sky-400 font-medium">dividendos</span>.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btn-news-refresh" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold transition active:scale-95">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span>Atualizar</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="news-source-filters" class="hidden flex flex-wrap items-center gap-1.5 text-xs"></div>
+
+        <div id="news-meta" class="hidden text-[11px] text-gray-500"></div>
+
+        <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: MDI -->
+    <section id="tab-mdi" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+            Mapa do Dividendo Inteligente
+          </h2>
+          <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            Meses em que cada empresa <span class="text-indigo-400 font-medium">anuncia</span> e <span class="text-indigo-400 font-medium">paga</span> proventos. Aporte antes do anúncio.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs text-gray-600 border-collapse">
+            <thead class="bg-gray-100/80 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200">
+              <tr>
+                <th class="py-3 px-3">Ativo</th>
+                <th class="py-3 px-2 text-center">DY 12M</th>
+                <th class="py-3 px-1 text-center">Jan</th>
+                <th class="py-3 px-1 text-center">Fev</th>
+                <th class="py-3 px-1 text-center">Mar</th>
+                <th class="py-3 px-1 text-center">Abr</th>
+                <th class="py-3 px-1 text-center">Mai</th>
+                <th class="py-3 px-1 text-center">Jun</th>
+                <th class="py-3 px-1 text-center">Jul</th>
+                <th class="py-3 px-1 text-center">Ago</th>
+                <th class="py-3 px-1 text-center">Set</th>
+                <th class="py-3 px-1 text-center">Out</th>
+                <th class="py-3 px-1 text-center">Nov</th>
+                <th class="py-3 px-1 text-center">Dez</th>
+                <th class="py-3 px-3 text-center">Janela Típica</th>
+              </tr>
+            </thead>
+            <tbody id="mdi-table-body" class="divide-y divide-gray-200/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: RAIO-X -->
+    <section id="tab-raiox" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+              Raio-X do Ativo
+            </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              <span class="text-cyan-400 font-medium">Imóveis de FIIs</span>, <span class="text-amber-400 font-medium">CRIs</span>, modelo de negócio, ativos em dólar e renda fixa.
+            </p>
+          </div>
+          <select id="select-raiox-asset" class="bg-white border border-gray-300/80 text-sm font-medium text-emerald-400 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"></select>
+        </div>
+        <div id="raiox-detail-content" class="space-y-6"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: COMPARADOR DE PERFORMANCE -->
+    <section id="tab-performance" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-col gap-4 border-b border-gray-200 pb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+              Comparador de Performance
+            </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              Compare seus ativos e descubra <span class="text-emerald-400 font-medium">quem rendeu mais</span> no período com métricas de mercado.
+            </p>
+          </div>
+
+          <!-- Ticker Select: carteira auto + tickers livres -->
+          <div class="space-y-2">
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="text" id="perf-ticker-input" placeholder="Adicionar ticker livre (ex: PETR4, MXRF11, AAPL)" class="flex-1 bg-white border border-gray-300/80 rounded-lg p-2 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition uppercase" maxlength="12">
+              <button id="btn-perf-add-ticker" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition active:scale-95">Adicionar</button>
+            </div>
+            <div id="perf-ticker-chips" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Período -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-gray-500">Período:</span>
+            <button data-perf-period="1M" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">1M</button>
+            <button data-perf-period="3M" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">3M</button>
+            <button data-perf-period="6M" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">6M</button>
+            <button data-perf-period="1Y" class="perf-period-btn perf-period-active flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap transition">1A</button>
+            <button data-perf-period="2Y" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">2A</button>
+            <button data-perf-period="5Y" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">5A</button>
+          </div>
+
+          <!-- Métrica -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-gray-500">Métrica:</span>
+            <button data-perf-metric="PRICE" class="perf-metric-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition"><i data-lucide="line-chart" class="w-3.5 h-3.5 shrink-0"></i> Variação Preço</button>
+            <button data-perf-metric="TOTAL" class="perf-metric-btn perf-metric-active flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap transition"><i data-lucide="trending-up" class="w-3.5 h-3.5 shrink-0"></i> Retorno Total</button>
+            <button data-perf-metric="DY" class="perf-metric-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition"><i data-lucide="coins" class="w-3.5 h-3.5 shrink-0"></i> Dividend Yield</button>
+            <button data-perf-metric="YOC" class="perf-metric-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition"><i data-lucide="percent" class="w-3.5 h-3.5 shrink-0"></i> Yield on Cost</button>
+            <button data-perf-metric="MARGIN" class="perf-metric-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition"><i data-lucide="shield-check" class="w-3.5 h-3.5 shrink-0"></i> Margem Bazin</button>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="bg-white border border-gray-200 rounded-2xl p-4">
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Performance Acumulada (base 100)</h3>
+            <p class="text-[11px] text-gray-500 mb-3">Quem está na frente no período selecionado.</p>
+            <div class="h-72"><canvas id="chart-perf-line"></canvas></div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-2xl p-4">
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Ranking por Métrica</h3>
+            <p class="text-[11px] text-gray-500 mb-3">Ordenado pela métrica selecionada.</p>
+            <div class="h-72"><canvas id="chart-perf-bar"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Tabela de comparação -->
+        <div class="overflow-x-auto rounded-2xl border border-gray-200">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200">
+              <tr>
+                <th class="py-2.5 px-4">Ativo</th>
+                <th class="py-2.5 px-4 text-right">Preço Atual</th>
+                <th class="py-2.5 px-4 text-right">Var. Período</th>
+                <th class="py-2.5 px-4 text-right">Retorno Total*</th>
+                <th class="py-2.5 px-4 text-right">Dividend Yield</th>
+                <th class="py-2.5 px-4 text-right">Yield on Cost</th>
+                <th class="py-2.5 px-4 text-right">Margem Bazin</th>
+              </tr>
+            </thead>
+            <tbody id="perf-table-body" class="divide-y divide-gray-200/60"></tbody>
+          </table>
+        </div>
+        <p class="text-[10px] text-gray-400">
+          *Retorno total = variação de preço + estimativa de dividendos no período. Dividend Yield / Yield on Cost usam o DPA informado na carteira; tickers livres sem DPA mostram "—". Dados históricos: Yahoo Finance.
+        </p>
+      </div>
+    </section>
+
+    <!-- TAB 6: ACADEMIA DO INVESTIDOR -->
+    <section id="tab-academia" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+            Academia do Investidor
+          </h2>
+          <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            Trilhas práticas de <span class="text-emerald-400 font-medium">análise fundamentalista</span> e método previdenciário de <span class="text-emerald-400 font-medium">Bazin/Barsi</span>.
+          </p>
+        </div>
+        <div id="academy-tracks-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      </div>
+    </section>
+
+    <!-- TAB 6: LIBERDADE FINANCEIRA -->
+    <section id="tab-liberdade" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+            Simulador de Liberdade Financeira
+          </h2>
+          <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            Quanto tempo e <span class="text-pink-400 font-medium">patrimônio</span> para atingir sua meta de aposentadoria com <span class="text-emerald-400 font-medium">dividendos</span>.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-gray-200">
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">Renda Passiva Desejada (R$/mês)</label>
+            <input type="number" id="sim-target-income" value="5000" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">Aporte Mensal (R$)</label>
+            <input type="number" id="sim-monthly-contribution" value="1500" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">Yield Anual Esperado (%)</label>
+            <input type="number" id="sim-expected-yield" value="8.5" step="0.1" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-gray-200 text-center">
+            <span class="text-xs text-gray-500 block mb-1">Patrimônio Alvo Necessário</span>
+            <span class="mono text-xl font-bold text-pink-400" id="sim-result-capital">R$ 0,00</span>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 text-center">
+            <span class="text-xs text-gray-500 block mb-1">Tempo Estimado</span>
+            <span class="mono text-xl font-bold text-emerald-400" id="sim-result-time">0 anos</span>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 text-center">
+            <span class="text-xs text-gray-500 block mb-1">Poder do Reinvestimento</span>
+            <span class="mono text-xl font-bold text-indigo-400" id="sim-result-snowball">100% Ativo</span>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Evolução Patrimonial: Aportes vs Dividendos Reinvestidos</h3>
+          <div class="h-64 relative">
+            <canvas id="chart-retirement-trajectory"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: IR & DARF -->
+    <section id="tab-fiscal" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+              IR & DARF
+            </h2>
+            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+              Limite de <span class="text-emerald-400 font-medium">isenção até R$ 20k</span>, <span class="text-yellow-400 font-medium">alíquota de 20% em FIIs</span> e compensação de prejuízos.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-gray-500">Mês:</label>
+            <input type="month" id="tax-month-input" class="bg-white border border-gray-300/80 rounded-lg px-3 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+              Ações
+            </h3>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-gray-500 block mb-1">Total vendido no mês (R$)</label>
+                <input type="number" id="tax-stock-sold" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              </div>
+              <div>
+                <label class="text-xs text-gray-500 block mb-1">Lucro realizado no mês (R$)</label>
+                <input type="number" id="tax-stock-profit" value="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              </div>
+              <div>
+                <label class="text-xs text-gray-500 block mb-1">Prejuízo acumulado a abater (R$)</label>
+                <input type="number" id="tax-stock-loss" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <i data-lucide="building" class="w-4 h-4 text-indigo-400"></i>
+              Fundos Imobiliários (FIIs)
+            </h3>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-gray-500 block mb-1">Total vendido no mês (R$)</label>
+                <input type="number" id="tax-fii-sold" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              </div>
+              <div>
+                <label class="text-xs text-gray-500 block mb-1">Lucro realizado no mês (R$)</label>
+                <input type="number" id="tax-fii-profit" value="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              </div>
+              <div>
+                <label class="text-xs text-gray-500 block mb-1">Prejuízo acumulado a abater (R$)</label>
+                <input type="number" id="tax-fii-loss" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="btn-calc-tax" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition active:scale-95 flex items-center gap-1.5">
+            <i data-lucide="calculator" class="w-4 h-4"></i> Calcular DARF
+          </button>
+          <span id="tax-save-status" class="text-[11px] text-gray-500"></span>
+        </div>
+
+        <div id="tax-result" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-1.5">
+            <span class="text-xs font-bold text-gray-900 block">Ações</span>
+            <span class="text-[10px] text-gray-500 block">Alíquota 15% sobre o lucro (DARF 6015) — isenção até R$ 20k vendidos</span>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Vendido no mês</span>
+              <span id="tax-result-stock-sold" class="text-xs mono font-bold text-gray-900">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Status</span>
+              <span id="tax-result-stock-status" class="text-xs font-bold"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Lucro tributável</span>
+              <span id="tax-result-stock-taxable" class="text-xs mono font-bold text-gray-900">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">DARF</span>
+              <span id="tax-result-stock-darf" class="text-xs mono font-bold text-emerald-400">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Prejuízo restante</span>
+              <span id="tax-result-stock-loss" class="text-xs mono font-bold text-gray-900">R$ 0,00</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-1.5">
+            <span class="text-xs font-bold text-gray-900 block">Fundos Imobiliários</span>
+            <span class="text-[10px] text-gray-500 block">Alíquota 20% sobre o lucro (DARF 6015) — sem isenção de R$ 20k</span>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Vendido no mês</span>
+              <span id="tax-result-fii-sold" class="text-xs mono font-bold text-gray-900">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Status</span>
+              <span id="tax-result-fii-status" class="text-xs font-bold"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Lucro tributável</span>
+              <span id="tax-result-fii-taxable" class="text-xs mono font-bold text-gray-900">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">DARF</span>
+              <span id="tax-result-fii-darf" class="text-xs mono font-bold text-emerald-400">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-500">Prejuízo restante</span>
+              <span id="tax-result-fii-loss" class="text-xs mono font-bold text-gray-900">R$ 0,00</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04] space-y-2">
+            <span class="text-xs font-bold text-gray-900 block">DARF Total do Mês</span>
+            <div id="tax-result-total" class="text-3xl font-bold mono text-gray-900">R$ 0,00</div>
+            <p class="text-[10px] text-gray-500 leading-relaxed">Valores são estimativas para controle. Confirme o cálculo com a sua contabilidade ou no programa da Receita antes de pagar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: PERFIL & CONTA -->
+    <section id="tab-perfil" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+            Perfil
+          </h2>
+          <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            Dados de cadastro, <span class="text-gray-600 font-medium">senha</span> e <span class="text-rose-400 font-medium">sessão</span>.
+          </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+            <div id="profile-avatar-preview" class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shrink-0 overflow-hidden shadow-lg">
+              <img id="profile-avatar-preview-img" src="" alt="Avatar" class="hidden w-full h-full object-cover">
+              <i data-lucide="user" id="profile-avatar-preview-icon" class="w-8 h-8 text-gray-950"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-sm font-bold text-gray-900">Foto de Perfil</h3>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">Envie uma foto do seu dispositivo ou use a foto da sua conta Google (via Google Auth).</p>
+              <div class="flex flex-wrap gap-2 mt-3">
+                <label for="profile-avatar-file" class="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold transition active:scale-95">
+                  <i data-lucide="image" class="w-4 h-4"></i> Enviar Foto
+                </label>
+                <input id="profile-avatar-file" type="file" accept="image/*" class="hidden">
+                <button id="btn-remove-avatar" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold transition active:scale-95">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i> Remover
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <i data-lucide="user" class="w-4 h-4 text-emerald-400"></i>
+              Dados Pessoais
+            </h3>
+            <div>
+              <label for="profile-form-name" class="block text-xs font-semibold text-gray-500 mb-1.5">Nome</label>
+              <input id="profile-form-name" type="text" value="Investidor" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40" placeholder="Seu nome">
+            </div>
+            <div>
+              <label for="profile-form-email" class="block text-xs font-semibold text-gray-500 mb-1.5">E-mail</label>
+              <input id="profile-form-email" type="email" value="investidor@email.com" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40" placeholder="seu@email.com">
+            </div>
+            <button id="btn-save-profile" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm font-semibold transition active:scale-95">
+              <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+            </button>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i>
+              Alterar Senha
+            </h3>
+            <div>
+              <label for="profile-form-current" class="block text-xs font-semibold text-gray-500 mb-1.5">Senha atual</label>
+              <input id="profile-form-current" type="password" autocomplete="current-password" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40" placeholder="••••••••">
+            </div>
+            <div>
+              <label for="profile-form-new" class="block text-xs font-semibold text-gray-500 mb-1.5">Nova senha</label>
+              <input id="profile-form-new" type="password" autocomplete="new-password" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40" placeholder="Nova senha">
+            </div>
+            <div>
+              <label for="profile-form-confirm" class="block text-xs font-semibold text-gray-500 mb-1.5">Confirmar nova senha</label>
+              <input id="profile-form-confirm" type="password" autocomplete="new-password" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40" placeholder="Repita a nova senha">
+            </div>
+            <button id="btn-change-password" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm font-semibold transition active:scale-95">
+              <i data-lucide="key" class="w-4 h-4"></i> Alterar Senha
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-rose-500/20 space-y-3">
+          <h3 class="text-sm font-bold text-rose-400 flex items-center gap-2">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            Sair da Conta
+          </h3>
+          <p class="text-xs text-gray-500 leading-relaxed">Encerra a sessão neste dispositivo. Seus dados locais continuam salvos nesta máquina.</p>
+          <button id="btn-logout" class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-semibold transition active:scale-95">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Sair
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 9: CONFIGURAÇÕES -->
+    <section id="tab-config" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 tracking-tight">
+            Configurações
+          </h2>
+          <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            <span class="text-amber-400 font-medium">Notificações</span> e <span class="text-gray-600 font-medium">informações</span> do aplicativo.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-white p-5 rounded-xl border border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-2">
+              <i data-lucide="bell" class="w-4 h-4 text-amber-400"></i>
+              Notificações
+            </h3>
+            <div class="divide-y divide-gray-200">
+              <label class="flex items-center justify-between gap-4 py-3">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="bell-ring" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                  <span>
+                    <span class="block text-sm font-medium text-gray-900">Alertas do sistema</span>
+                    <span class="block text-[11px] text-gray-500">Risco, oportunidades e proventos</span>
+                  </span>
+                </span>
+                <button type="button" role="switch" aria-checked="true" id="toggle-notif-config" class="relative w-11 h-6 rounded-full bg-emerald-500 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 shrink-0">
+                  <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow translate-x-5 transition-transform duration-200"></span>
+                </button>
+              </label>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 space-y-2">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-gray-500"></i>
+              Sobre
+            </h3>
+            <p class="text-xs text-gray-500 leading-relaxed">Previdência Invest v1 · Funciona offline · Sincronização com Supabase em breve.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <!-- Modal: Adicionar Ativo -->
+  <div id="modal-add-asset" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-gray-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3">
+        <h3 class="font-semibold text-base text-gray-900 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i>
+          Novo Aporte
+        </h3>
+        <button id="btn-close-modal-add" class="p-1 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-add-asset" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-gray-500 mb-1">Ticker</label>
+          <input type="text" id="add-ticker" required placeholder="Ex: BBAS3" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-500 mb-1">Tipo</label>
+            <select id="add-type" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+              <option value="ACAO">Ação Brasil</option>
+              <option value="FII_TIJOLO">FII Tijolo</option>
+              <option value="FII_PAPEL">FII Papel</option>
+              <option value="STOCK_USD">Stock / REIT</option>
+              <option value="ETF">ETF</option>
+              <option value="RENDA_FIXA">Renda Fixa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-500 mb-1">Quantidade</label>
+            <input type="number" id="add-quantity" required min="1" step="any" value="100" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-500 mb-1">Preço Unit. (R$)</label>
+            <input type="number" id="add-price" required step="0.01" value="25.00" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+          <div>
+            <label class="block text-gray-500 mb-1">DPA Anual (R$)</label>
+            <input type="number" id="add-dpa" step="0.01" value="2.20" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+          </div>
+        </div>
+        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] mt-2">
+          Salvar na Carteira
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="src/config/supabase-config.js"></script>
+  <script src="src/services/supabaseService.js"></script>
+  <script src="src/services/mathEngine.js"></script>
+  <script src="src/data/modelPortfolio.js"></script>
+  <script src="src/services/quotesService.js"></script>
+  <script src="src/services/importerService.js"></script>
+  <script src="src/services/notificationService.js"></script>
+  <script src="src/services/pwaService.js"></script>
+  <script src="src/services/newsService.js"></script>
+  <script src="vendor/lucide.min.js"></script>
+  <script src="investor-app.js"></script>
+
+  <!-- Modal: Importador de Planilha / Extrato B3 -->
+  <div id="modal-importer" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-gray-200 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3">
+        <h3 class="font-semibold text-base text-gray-900 flex items-center gap-2">
+          <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-400"></i>
+          Importar Extrato
+        </h3>
+        <button id="btn-close-modal-importer" class="p-1 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-gray-600">
+          Arraste e solte o arquivo <strong>.CSV</strong> exportado da B3, NuInvest, Rico, Clear, XP ou sua planilha de controle. O sistema calculará o Preço Médio automaticamente!
+        </p>
+
+        <!-- Dropzone Area -->
+        <div id="dropzone-csv" class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-2xl p-6 text-center cursor-pointer bg-gray-100/60 transition space-y-2">
+          <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <div class="text-sm font-bold text-gray-900">Clique para selecionar ou arraste o arquivo CSV aqui</div>
+          <div class="text-[11px] text-gray-500">Suporta formatos delimitados por vírgula ou ponto-e-vírgula</div>
+          <input type="file" id="input-file-csv" accept=".csv,.txt" class="hidden">
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] pt-1">
+          <span class="text-gray-500">Exemplo de colunas: <em>Data, Ticker, Operação, Quantidade, Preço</em></span>
+          <button id="btn-download-sample-csv" class="text-emerald-400 hover:underline font-semibold flex items-center gap-1">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar Modelo CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview Table Container -->
+      <div id="preview-importer-container" class="hidden flex-1 overflow-hidden flex flex-col space-y-2 border-t border-gray-200 pt-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-gray-900" id="preview-tx-count">0 Transações Identificadas:</span>
+          <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Pronto para Integrar</span>
+        </div>
+        <div class="overflow-y-auto custom-scrollbar max-h-48 border border-gray-200 rounded-xl">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-white text-gray-500 sticky top-0 font-semibold border-b border-gray-200">
+              <tr>
+                <th class="py-2 px-3">Data</th>
+                <th class="py-2 px-3">Ticker</th>
+                <th class="py-2 px-3">Tipo</th>
+                <th class="py-2 px-3 text-right">Qtd</th>
+                <th class="py-2 px-3 text-right">Preço Unit.</th>
+                <th class="py-2 px-3 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody id="preview-importer-tbody" class="divide-y divide-gray-200/60"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-200">
+        <button id="btn-cancel-importer" class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold transition">
+          Cancelar
+        </button>
+        <button id="btn-confirm-importer" disabled class="px-4 py-2 rounded-xl bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Integrar à Carteira</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Toast: Nova versão disponível -->
+  <div id="pwa-update-toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 bg-white border border-emerald-500/40 rounded-xl px-4 py-3 shadow-2xl text-xs">
+    <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i>
+    <span class="text-gray-700">Nova versão do app disponível.</span>
+    <button id="pwa-update-reload" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold px-3 py-1.5 rounded-lg transition">Atualizar</button>
+  </div>
+
+</body>
+</html>

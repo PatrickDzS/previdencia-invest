@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build / arquivos gerados (contém credenciais quando o build injeta env vars)
+src/config/supabase-config.js
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDE / editores
+.vscode/
+.idea/
+*.swp

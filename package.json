@@ -1,0 +1,14 @@
+{
+  "name": "previdencia-invest",
+  "version": "1.0.0",
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  },
+  "scripts": {
+    "start": "npx serve .",
+    "build": "node -e \"const fs=require('fs');if(fs.existsSync('scripts/build-env.js')){require('child_process').execSync('node scripts/build-env.js',{stdio:'inherit'})}\" && node -v",
+    "icons": "node scripts/generate-icons.mjs",
+    "postinstall": "node -e \"const fs=require('fs');if(fs.existsSync('scripts/build-env.js')){require('child_process').execSync('node scripts/build-env.js',{stdio:'inherit'})}\"",
+    "test": "node src/tests/mathEngine.test.js && node src/tests/importerService.test.js && node src/tests/notificationService.test.js"
+  }
+}
