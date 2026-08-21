@@ -92,6 +92,9 @@ function parseLocaleNumber(value, fallback = 0) {
 document.addEventListener('DOMContentLoaded', () => {
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
   initAuthGate();
+  // inicia ticker imediatamente (mesmo com gate visível) para cachear e não depender só do bootstrap
+  // header é inert durante login, mas deixa dados prontos para exibir assim que liberar
+  try { initMarketTicker(); } catch(e) {}
 });
 
 // Função de bootstrap: roda só depois que o usuário autenticou (ou liberou o modo local)
@@ -528,17 +531,8 @@ async function handleRefreshDividends(btn) {
 
 function initDividendsRefresh() {
   document.getElementById('btn-refresh-dividends')?.addEventListener('click', (e)=> handleRefreshDividends(e.currentTarget));
-  // NÃO faz atualização automática de dividendos no refresh – evita bagunçar valores manuais (ex: MXRF 0,10)
-  // Apenas atualiza cotações/preços em background sem sobrescrever dividendos (forceDividends:false)
-  if ((portfolioState.assets||[]).length > 0 && typeof enrichPortfolioWithLiveDividends === 'function') {
-    setTimeout(async ()=>{
-      try {
-        const res = await enrichPortfolioWithLiveDividends(portfolioState, { forceDividends: false });
-        // só preço foi atualizado; dividendos manuais permanecem intactos
-        if (res.updated > 0) { savePortfolioToStorage(); renderAllViews(); initRaioXSelector(); }
-      } catch(e){ /* silencioso */ }
-    }, 1200);
-  }
+  // NUNCA atualiza automaticamente ao carregar a página – preserva 100% dos valores manuais da carteira.
+  // Qualquer atualização de preço/dividendo ao vivo só ocorre quando o usuário clica em "Atualizar dividendos".
 }
 
 /* ============================================================
@@ -631,6 +625,7 @@ async function refreshMarketTicker(force = false) {
   }
 }
 
+let marketTickerInitialized = false;
 function initMarketTicker() {
   // renderiza cache imediatamente para não ficar "—"
   try {
@@ -640,9 +635,11 @@ function initMarketTicker() {
       if (c && c.data) renderMarketTicker(c.data);
     }
   } catch (e) {}
-  // busca ao vivo
+  // busca ao vivo (sempre tenta, mesmo se já inicializado)
   setTimeout(() => refreshMarketTicker(false), 400);
-  // clique para atualizar
+  if (marketTickerInitialized) return;
+  marketTickerInitialized = true;
+  // clique para atualizar (idempotente)
   document.getElementById('market-ticker')?.addEventListener('click', () => refreshMarketTicker(true));
   // auto refresh a cada 3 minutos
   if (marketTickerInterval) clearInterval(marketTickerInterval);
@@ -1227,12 +1224,18 @@ function renderRaioXDetail(ticker = null) {
     fetchAssetInfos([targetTicker]).then(infos=>{
       const info = infos[targetTicker];
       if (info) {
-        // atualiza deepDive com dados vivos
-        deep.companyName = info.name || deep.companyName;
-        if (info.price) asset.currentPrice = info.price;
-        if (info.monthlyDividend != null) {
-          asset.monthlyDividendEstimate = info.monthlyDividend;
-          asset.historicalAverageDPA = info.annualDividend != null ? info.annualDividend : info.monthlyDividend*12;
+        // atualiza deepDive com dados vivos SEM mutar valores manuais da carteira (currentPrice/dividendo)
+        // Guarda tudo em deepDive.live* para exibição, preserva o que o usuário digitou.
+        deep.companyName = (isGenericRaiox && info.name) ? info.name : deep.companyName;
+        if (info.price && isFinite(info.price) && info.price > 0) {
+          deep.livePrice = Number(info.price);
+        }
+        if (info.monthlyDividend != null && isFinite(info.monthlyDividend) && info.monthlyDividend > 0) {
+          deep.liveMonthly = Number(info.monthlyDividend.toFixed(4));
+          deep.liveAnnual = Number((info.annualDividend != null && info.annualDividend>0 ? info.annualDividend : info.monthlyDividend*12).toFixed(4));
+        } else if (info.annualDividend != null && isFinite(info.annualDividend) && info.annualDividend > 0) {
+          deep.liveAnnual = Number(info.annualDividend.toFixed(4));
+          deep.liveMonthly = Number((info.annualDividend/12).toFixed(4));
         }
         deep.description = info.sources?.scraping?.info?.descricao ? info.sources.scraping.info.descricao : (info.name ? `${info.name} (${info.type}) — dados ao vivo via ${info.sources?.scraping?.source || info.sources?.brapi?.source || 'Brapi'}.` : deep.description);
         const live = info.sources?.scraping?.info || {};
@@ -1263,8 +1266,8 @@ function renderRaioXDetail(ticker = null) {
             revenuePercent: 0, occupancyPercent: 0, mainTenants: []
           }));
         }
-        try { savePortfolioToStorage(); } catch(e){}
-        renderAllViews();
+        // Não salva automaticamente no localStorage para não alterar carteira do usuário;
+        // dados ao vivo ficam apenas em memória em deepDive.live* para exibição.
         renderRaioXDetail(targetTicker);
       } else {
         // sem dados ao vivo – mantém card genérico mas mostra aviso com link direto para Investidor10/StatusInvest

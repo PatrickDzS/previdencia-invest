@@ -36,7 +36,7 @@ async function fetchAwesomeDirect() {
 async function fetchBrapiIbovDirect() {
   try {
     const r = await fetch('https://brapi.dev/api/quote/%5EBVSP');
-    if (!r.ok) return null;
+    if (!r.ok) throw new Error('brapi '+r.status);
     const j = await r.json();
     const item = j && j.results && j.results[0];
     if (!item || item.regularMarketPrice == null) return null;
@@ -46,6 +46,44 @@ async function fetchBrapiIbovDirect() {
       source: 'Brapi'
     };
   } catch (e) { return null; }
+}
+
+async function fetchYahooIbovProxy() {
+  const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EBVSP?interval=1d&range=1d';
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`
+  ];
+  for (const proxyUrl of proxies) {
+    try {
+      const r = await fetch(proxyUrl);
+      if (!r.ok) continue;
+      let json;
+      if (proxyUrl.includes('allorigins.win')) {
+        const wrapper = await r.json();
+        if (!wrapper.contents) continue;
+        json = JSON.parse(wrapper.contents);
+      } else {
+        json = await r.json();
+      }
+      const meta = json && json.chart && json.chart.result && json.chart.result[0] && json.chart.result[0].meta;
+      if (!meta || meta.regularMarketPrice == null) continue;
+      const cur = Number(meta.regularMarketPrice);
+      const prev = meta.chartPreviousClose || meta.previousClose || cur;
+      const pct = prev ? ((cur - prev) / prev) * 100 : 0;
+      return { price: cur, changePercent: Number(pct.toFixed(2)), source: 'Yahoo-proxy' };
+    } catch (e) { /* next proxy */ }
+  }
+  return null;
+}
+
+async function fetchIbovDirect() {
+  // tenta Brapi primeiro (mais estável), depois Yahoo via proxy CORS
+  const brapi = await fetchBrapiIbovDirect();
+  if (brapi && brapi.price) return brapi;
+  const yahoo = await fetchYahooIbovProxy();
+  if (yahoo && yahoo.price) return yahoo;
+  return null;
 }
 
 async function getMarketIndicators(opts = {}) {
@@ -70,10 +108,10 @@ async function getMarketIndicators(opts = {}) {
   } catch (e) { /* fallback direto */ }
 
   // 2) fallback direto (funciona sem Vercel / CORS limitado)
-  // Para ibov, tenta Brapi; para dólar, AwesomeAPI
+  // Para ibov, tenta Brapi -> Yahoo proxy; para dólar, AwesomeAPI
   try {
     const [ibovDirect, dolarDirect] = await Promise.all([
-      fetchBrapiIbovDirect(),
+      fetchIbovDirect(),
       fetchAwesomeDirect()
     ]);
     if (ibovDirect || dolarDirect) {

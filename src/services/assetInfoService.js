@@ -57,10 +57,15 @@ async function enrichPortfolioWithLiveDividends(portfolioState, options={}) {
   portfolioState.assets.forEach(asset=>{
     const info = infos[asset.ticker.toUpperCase()];
     if (!info) return;
-    // Preço – sempre atualiza se vier >0 (não bagunça dividendos)
-    if (info.price && isFinite(info.price) && info.price > 0) {
+    // Preço – SÓ atualiza quando o usuário clicou manualmente (forceDividends=true).
+    // Nunca sobrescreve automaticamente no carregamento – preserva valor manual da carteira.
+    if (forceDividends && info.price && isFinite(info.price) && info.price > 0) {
       asset.currentPrice = Number(info.price);
       updated++;
+    } else if (info.price && isFinite(info.price) && info.price > 0) {
+      // guarda apenas como referência ao vivo sem mutar a carteira
+      asset.deepDive = asset.deepDive || {};
+      asset.deepDive.livePrice = Number(info.price);
     }
     // Dividendos: NÃO sobrescreve automaticamente no refresh para não bagunçar valores manuais
     // Só sobrescreve se for atualização manual (forceDividends) ou se o ativo ainda não tem dividendo
