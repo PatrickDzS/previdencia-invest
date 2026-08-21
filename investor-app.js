@@ -261,6 +261,26 @@ function populateProfileUser(user) {
   if (formName) formName.value = name;
   if (formEmail) formEmail.value = email;
 
+  // Header avatar (bolinha ao lado do sininho) – espelha o avatar do perfil
+  const headerImg = document.getElementById('header-profile-avatar-img');
+  const headerIcon = document.getElementById('header-profile-avatar-icon');
+  const sidebarImg = document.getElementById('profile-avatar-img');
+  // Se já há avatar salvo, garante que o header reflita
+  try {
+    const saved = localStorage.getItem('pv_avatar');
+    if (saved && headerImg) {
+      headerImg.src = saved;
+      headerImg.classList.remove('hidden');
+      if (headerIcon) headerIcon.classList.add('hidden');
+    } else if (sidebarImg && sidebarImg.src && !sidebarImg.classList.contains('hidden')) {
+      if (headerImg) {
+        headerImg.src = sidebarImg.src;
+        headerImg.classList.remove('hidden');
+        if (headerIcon) headerIcon.classList.add('hidden');
+      }
+    }
+  } catch(e){}
+
   if (typeof window.applyGoogleAvatar === 'function') {
     window.applyGoogleAvatar(user);
   }
@@ -1066,6 +1086,12 @@ function initNavigation() {
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && relatorioMenu && !relatorioMenu.classList.contains('hidden')) closeRelatorioMenu();
+  });
+
+  // Perfil – bolinha ao lado direito do sininho, abre página de perfil
+  const headerProfileBtn = document.getElementById('btn-header-profile');
+  headerProfileBtn?.addEventListener('click', () => {
+    window.location.hash = '#/perfil';
   });
 
   const filterBtns = document.querySelectorAll('.asset-filter-btn');
@@ -2645,7 +2671,9 @@ function initProfilePage() {
   const previewIcon = document.getElementById('profile-avatar-preview-icon');
 
   const applyAvatar = (url) => {
-    [avatarImg, previewImg].forEach(img => {
+    const headerImg = document.getElementById('header-profile-avatar-img');
+    const headerIcon = document.getElementById('header-profile-avatar-icon');
+    [avatarImg, previewImg, headerImg].forEach(img => {
       if (!img) return;
       if (url) {
         img.src = url;
@@ -2655,7 +2683,7 @@ function initProfilePage() {
         img.classList.add('hidden');
       }
     });
-    [avatarIcon, previewIcon].forEach(icon => {
+    [avatarIcon, previewIcon, headerIcon].forEach(icon => {
       if (!icon) return;
       if (url) { icon.classList.add('hidden'); } else { icon.classList.remove('hidden'); }
     });
@@ -2713,6 +2741,14 @@ function initProfilePage() {
   });
 
   logoutBtn?.addEventListener('click', () => {
+    if (typeof handleLogout === 'function') {
+      handleLogout();
+    } else {
+      alert('Sair da conta será habilitado após a conexão com o Supabase.');
+    }
+  });
+  const sidebarLogoutBtn = document.getElementById('btn-sidebar-logout');
+  sidebarLogoutBtn?.addEventListener('click', () => {
     if (typeof handleLogout === 'function') {
       handleLogout();
     } else {

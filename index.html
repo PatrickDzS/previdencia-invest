@@ -364,13 +364,6 @@
           <span>Offline</span>
         </span>
 
-        <div class="relative" id="notif-wrapper">
-          <button id="btn-header-notifications" title="Notificações" aria-haspopup="dialog" aria-expanded="false" class="relative flex items-center justify-center p-2.5 rounded-full hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] transition">
-            <i data-lucide="bell" class="w-5 h-5"></i>
-            <span id="badge-header-notif-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
-          </button>
-        </div>
-
         <div class="relative" id="relatorio-wrapper">
           <button id="btn-header-relatorio" aria-haspopup="menu" aria-expanded="false" class="px-3 py-2 rounded-lg hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] text-[14px] font-medium tracking-[0.01em] transition">Relatório</button>
           <div id="relatorio-menu" class="hidden absolute right-0 top-full mt-2 w-[200px] glass-card rounded-[12px] shadow-xl z-50 overflow-hidden flex-col border border-[rgba(190,201,195,0.3)]">
@@ -380,6 +373,18 @@
             </button>
           </div>
         </div>
+
+        <div class="relative" id="notif-wrapper">
+          <button id="btn-header-notifications" title="Notificações" aria-haspopup="dialog" aria-expanded="false" class="relative flex items-center justify-center p-2.5 rounded-full hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] transition">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span id="badge-header-notif-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
+          </button>
+        </div>
+
+        <button id="btn-header-profile" data-tab="tab-perfil" title="Perfil" aria-label="Abrir perfil" class="w-8 h-8 rounded-full bg-gradient-to-br from-[#006b55] to-[#00513f] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_2px_8px_rgba(0,81,63,0.25)] hover:scale-[1.05] transition ring-2 ring-white/80">
+          <img id="header-profile-avatar-img" src="" alt="Avatar" class="hidden w-full h-full object-cover">
+          <i data-lucide="user" id="header-profile-avatar-icon" class="w-4 h-4 text-white"></i>
+        </button>
       </div>
     </div>
   </header>
@@ -465,18 +470,15 @@
       <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i><span>Novo Aporte</span>
     </button>
 
-    <!-- Perfil & Configuração -->
+    <!-- Configuração -->
     <div class="mt-auto pt-4 border-t border-[rgba(190,201,195,0.5)] space-y-1">
-      <button data-tab="tab-perfil" id="profile-card" class="tab-btn flex items-center gap-3 px-2.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm w-full font-medium">
-        <div id="profile-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-[#006b55] to-[#00513f] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_2px_8px_rgba(0,81,63,0.25)]">
-          <img id="profile-avatar-img" src="" alt="Avatar" class="hidden w-full h-full object-cover">
-          <i data-lucide="user" id="profile-avatar-icon" class="w-4 h-4 text-white"></i>
-        </div>
-        <span id="profile-name" class="truncate font-semibold text-[#191c1e]">Perfil</span>
-      </button>
       <button data-tab="tab-config" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm w-full font-medium">
         <i data-lucide="settings" class="w-4 h-4 text-[#4648d4] shrink-0"></i>
         <span>Configuração</span>
+      </button>
+      <button id="btn-sidebar-logout" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-rose-500/10 text-[#ba1a1a] hover:text-[#93000a] transition text-sm w-full font-medium">
+        <i data-lucide="log-out" class="w-4 h-4 shrink-0"></i>
+        <span>Sair</span>
       </button>
     </div>
 
