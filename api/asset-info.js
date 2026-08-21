@@ -97,47 +97,91 @@ async function fetchBrapiInfo(ticker, token) {
   }
 }
 
-// ---------- StatusInvest scraping ----------
+// ---------- StatusInvest / Investidor10 scraping (Raio-X dentro do card) ----------
 function parseStatusInvest(html, ticker) {
   if (!html || typeof html !== 'string') return null;
   const out = {};
-  // Tenta extrair DY: procura por "Dividend Yield" e valor %
-  // Ex: <strong class="value">9,12%</strong> perto de DY
+  const txt = html.replace(/\s+/g,' ');
+
+  const toNum = (s)=> {
+    if (!s) return null;
+    const v = String(s).replace(/\./g,'').replace(',','.').replace(/[^\d.-]/g,'');
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // DY: Dividend Yield
   const dyMatch = html.match(/Dividend\s*Yield[^<]*<\/[^>]*>\s*<[^>]*>\s*<strong[^>]*>([\d.,]+)%/i)
-    || html.match(/DY[^<]*<\/[^>]*>\s*<strong[^>]*>([\d.,]+)%/i);
-  if (dyMatch) {
-    const v = dyMatch[1].replace(/\./g,'').replace(',','.');
-    out.dy = Number(v);
-  }
-  // Último rendimento / Valor atual
+    || html.match(/\bDY\b[^<]*<\/[^>]*>\s*<strong[^>]*>([\d.,]+)%/i)
+    || html.match(/DY \(12M\)[^<]*<\/[^>]*>[\s\S]{0,120}?([\d.,]+)%/i);
+  if (dyMatch) out.dy = toNum(dyMatch[1]);
+
+  // Último rendimento / Dividendo mensal
   const ultimoMatch = html.match(/Último\s*rendimento[^<]*<\/[^>]*>\s*<[^>]*>\s*<strong[^>]*>R\$\s*([\d.,]+)/i)
+    || html.match(/Último\s*dividendo[^<]*<\/[^>]*>\s*<[^>]*>R\$\s*([\d.,]+)/i)
     || html.match(/Rendimento[^<]*<\/[^>]*>\s*<strong[^>]*>R\$\s*([\d.,]+)/i);
-  if (ultimoMatch) {
-    const v = ultimoMatch[1].replace(/\./g,'').replace(',','.');
-    out.lastDividend = Number(v);
-  }
-  // Preço atual: meta regularMarketPrice pode estar em json
+  if (ultimoMatch) out.lastDividend = toNum(ultimoMatch[1]);
+
+  // Preço atual
   const priceMatch = html.match(/"price"\s*:\s*([\d.]+)/) || html.match(/regularMarketPrice"\s*:\s*([\d.]+)/);
   if (priceMatch) out.price = Number(priceMatch[1]);
+  // Investidor10 preço: <span class="value">R$ 95,20</span> perto de Cotação
+  if (!out.price) {
+    const invPrice = html.match(/Cota[çc][ãa]o[^<]*<\/[^>]*>\s*<[^>]*>R\$\s*([\d.,]+)/i);
+    if (invPrice) out.price = toNum(invPrice[1]);
+  }
 
-  // Info básica: segmento / CNPJ
-  const segmentoMatch = html.match(/Segmento<\/[^>]*>\s*<[^>]*>\s*<span[^>]*>([^<]+)<\/span>/i);
-  if (segmentoMatch) out.segment = segmentoMatch[1].trim();
-  const cnpjMatch = html.match(/CNPJ[^<]*<\/[^>]*>\s*<[^>]*>([^<]+)<\/[^>]*>/i);
-  if (cnpjMatch) out.cnpj = cnpjMatch[1].trim();
+  // Campos Raio-X para dentro do card
+  const getField = (labelRe) => {
+    const re = new RegExp(labelRe + '[^<]*<\\/[^>]*>\\s*<[^>]*>\\s*([^<]+?)\\s*<\\/', 'i');
+    const m = html.match(re);
+    return m ? m[1].replace(/<[^>]*>/g,'').trim() : null;
+  };
+  out.segment = getField('Segmento') || getField('Setor') || null;
+  out.cnpj = getField('CNPJ') || null;
+  out.pvp = getField('P\\/VP') ? toNum(getField('P\\/VP')) : (html.match(/P\/VP[^<]*<\/[^>]*>\s*<strong[^>]*>([\d.,]+)/i) ? toNum(html.match(/P\/VP[^<]*<\/[^>]*>\s*<strong[^>]*>([\d.,]+)/i)[1]) : null);
+  out.patrimonio = getField('Patrim[ôo]nio') || getField('Patrim[ôo]nio L[íi]quido') || null;
+  out.patrimonioNum = out.patrimonio ? toNum(out.patrimonio) : null;
+  out.vacancia = getField('Vac[âa]ncia') ? toNum(getField('Vac[âa]ncia')) : (html.match(/Vac[âa]ncia[^<]*<\/[^>]*>\s*<strong[^>]*>([\d.,]+)%/i) ? toNum(html.match(/Vac[âa]ncia[^<]*<\/[^>]*>\s*<strong[^>]*>([\d.,]+)%/i)[1]) : null);
+  out.liquidez = getField('Liquidez') || getField('Liquidez Di[áa]ria') || null;
+  out.cotas = getField('Cotas? emitidas') || getField('N[úu]mero de cotas') || null;
+  out.administrador = getField('Administrador') || null;
+  // Descrição / O que é – pega primeiro parágrafo relevante
+  const descMatch = html.match(/<p[^>]*class="[^"]*description[^"]*"[^>]*>([^<]{30,400})<\/p>/i)
+    || html.match(/Sobre[^<]*<\/h\d>[^<]*<p[^>]*>([^<]{30,600})<\/p>/i);
+  if (descMatch) out.descricao = descMatch[1].replace(/<[^>]*>/g,'').trim().slice(0,600);
 
-  // Composição / Ativos: tenta pegar lista de imóveis ou carteira
-  // StatusInvest FIIs tem tabela de Ativos
+  // Composição / Ativos: FIIs tijolo (imóveis) e FIIs papel (CRIs)
   out.composition = [];
-  // procura por imóveis: nome + ABL
+  // Imóveis: Investidor10 tem cards de ativos
   const imoveisRe = /data-company="([^"]+)"[\s\S]{0,300}?ABL[^0-9]*([\d.,]+)\s*m/gi;
   let m;
   while ((m = imoveisRe.exec(html)) !== null) {
-    out.composition.push({ name: m[1].trim(), abl: m[2] });
+    out.composition.push({ name: m[1].trim(), abl: m[2].trim(), type: 'imovel' });
     if (out.composition.length >= 20) break;
   }
+  // Fallback: procura linhas de tabela de ativos (Investidor10)
+  if (!out.composition.length) {
+    const rowRe = /<tr[^>]*>[\s\S]*?<td[^>]*>([^<]{3,80})<\/td>[\s\S]*?R\$\s*([\d.,]+)[\s\S]*?<td[^>]*>([^<]*%)/gi;
+    let r;
+    while ((r = rowRe.exec(html)) !== null) {
+      out.composition.push({ name: r[1].trim(), value: r[2].trim(), extra: r[3].trim() });
+      if (out.composition.length >= 12) break;
+    }
+  }
+  // CRIs / Carteira para FIIs papel
+  if (!out.composition.length) {
+    const criRe = /CRI[^<]*<\/[^>]*>\s*<[^>]*>([^<]{5,60})</gi;
+    let c;
+    while ((c = criRe.exec(html)) !== null) {
+      out.composition.push({ name: c[1].trim(), type: 'cri' });
+      if (out.composition.length >= 12) break;
+    }
+  }
 
-  return Object.keys(out).length ? out : null;
+  // Mantém apenas campos preenchidos
+  const hasData = Object.keys(out).some(k=> out[k] != null && (Array.isArray(out[k]) ? out[k].length : true));
+  return hasData ? out : null;
 }
 
 async function fetchStatusInvest(ticker) {

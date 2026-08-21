@@ -1119,10 +1119,26 @@ function renderRaioXDetail(ticker = null) {
           asset.monthlyDividendEstimate = info.monthlyDividend;
           asset.historicalAverageDPA = info.annualDividend != null ? info.annualDividend : info.monthlyDividend*12;
         }
-        deep.description = info.name ? `${info.name} (${info.type}) — dados ao vivo via ${info.sources?.scraping?.source || info.sources?.brapi?.source || 'Brapi'}.` : deep.description;
-        if (info.sources?.scraping?.info?.segment) deep.subsector = info.sources.scraping.info.segment;
+        deep.description = info.sources?.scraping?.info?.descricao ? info.sources.scraping.info.descricao : (info.name ? `${info.name} (${info.type}) — dados ao vivo via ${info.sources?.scraping?.source || info.sources?.brapi?.source || 'Brapi'}.` : deep.description);
+        const live = info.sources?.scraping?.info || {};
+        if (live.segment) deep.subsector = live.segment;
+        if (live.cnpj) deep.cnpj = live.cnpj;
         if (info.raioxUrl) deep.infoUrl = info.raioxUrl;
         if (info.dy != null) deep.liveDy = info.dy;
+        // guarda todo o Raio-X ao vivo para exibir dentro do card
+        deep.liveInfo = {
+          segment: live.segment || null,
+          cnpj: live.cnpj || null,
+          pvp: live.pvp ?? null,
+          patrimonio: live.patrimonio || null,
+          vacancia: live.vacancia ?? null,
+          liquidez: live.liquidez || null,
+          cotas: live.cotas || null,
+          administrador: live.administrador || null,
+          descricao: live.descricao || null
+        };
+        // atualiza businessModel com info ao vivo se genérico
+        if (live.descricao && String(deep.businessModel||'').includes('Conforme atividade')) deep.businessModel = live.descricao.slice(0,300);
         // composição ao vivo (imóveis)
         if (info.raioxComposition && info.raioxComposition.length) {
           deep.properties = info.raioxComposition.slice(0,12).map(c=>({
@@ -1266,6 +1282,19 @@ function renderRaioXDetail(ticker = null) {
           <span class="text-[11px] uppercase font-bold text-gray-500 tracking-wider">Modelo de Negócio (De onde vem o dinheiro):</span>
           <p class="text-xs text-gray-600 mt-0.5">${deep.businessModel}</p>
         </div>
+        ${deep.liveInfo && (deep.liveInfo.pvp!=null || deep.liveInfo.vacancia!=null || deep.liveInfo.patrimonio || deep.liveInfo.cnpj || deep.liveInfo.liquidez) ? `
+        <div class="pt-3 border-t border-gray-200/80">
+          <span class="text-[11px] uppercase font-bold text-cyan-600 tracking-wider flex items-center gap-1"><i data-lucide="search" class="w-3 h-3"></i> Raio-X ao vivo (Investidor10/StatusInvest) — o que o ativo é e o que tem dentro</span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2 text-[11px]">
+            ${deep.liveInfo.cnpj ? `<div><span class="block text-gray-500">CNPJ</span><span class="font-bold text-gray-900">${deep.liveInfo.cnpj}</span></div>` : ``}
+            ${deep.liveInfo.pvp!=null ? `<div><span class="block text-gray-500">P/VP</span><span class="font-bold ${Number(deep.liveInfo.pvp)<1?'text-emerald-600':'text-gray-900'}">${Number(deep.liveInfo.pvp).toFixed(2)}</span></div>` : ``}
+            ${deep.liveInfo.vacancia!=null ? `<div><span class="block text-gray-500">Vacância</span><span class="font-bold ${Number(deep.liveInfo.vacancia)>5?'text-amber-600':'text-emerald-600'}">${Number(deep.liveInfo.vacancia).toFixed(2)}%</span></div>` : ``}
+            ${deep.liveInfo.patrimonio ? `<div class="col-span-2 sm:col-span-1"><span class="block text-gray-500">Patrimônio</span><span class="font-bold text-gray-900 truncate block">${deep.liveInfo.patrimonio}</span></div>` : ``}
+            ${deep.liveInfo.liquidez ? `<div><span class="block text-gray-500">Liquidez</span><span class="font-bold text-gray-900">${deep.liveInfo.liquidez}</span></div>` : ``}
+            ${deep.liveInfo.administrador ? `<div class="col-span-2"><span class="block text-gray-500">Administrador</span><span class="font-bold text-gray-900 truncate block">${deep.liveInfo.administrador}</span></div>` : ``}
+          </div>
+          ${deep.properties && deep.properties.length ? `<p class="text-[10px] text-gray-500 mt-2">${deep.properties.length} ativos/imóveis mapeados abaixo — composição real do fundo.</p>` : ``}
+        </div>` : ``}
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col justify-between space-y-3">
