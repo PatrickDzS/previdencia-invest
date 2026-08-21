@@ -112,7 +112,10 @@ function bootstrapApp(user) {
   initTaxPage();
   initDividendsRefresh();
   initMarketTicker();
-  history.replaceState(null, '', window.location.pathname + window.location.search + '#/dashboard');
+  // respeita hash existente (bookmark/refresh) — só força dashboard se não houver hash
+  if (!window.location.hash || window.location.hash === '#') {
+    history.replaceState(null, '', window.location.pathname + window.location.search + '#/dashboard');
+  }
   renderAllViews();
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
 
@@ -807,24 +810,20 @@ function handleHashChange() {
     activateTabByButton(btn, true);
     return;
   }
-  if (tabId === 'tab-notificacoes') {
+  // Tabs sem botão na sidebar (perfil, relatório, notificações) — desmarca dashboard e exibe conteúdo
+  const genericEl = document.getElementById(tabId);
+  if (genericEl && genericEl.classList.contains('tab-content')) {
     const contents = document.querySelectorAll('.tab-content');
     contents.forEach(c => c.classList.add('hidden'));
-    const el = document.getElementById('tab-notificacoes');
-    if (el) { el.classList.remove('hidden'); entrance(el, 'fade-in'); }
+    genericEl.classList.remove('hidden');
+    entrance(genericEl, 'fade-in');
     document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active-tab'));
     if (window.lucide) lucide.createIcons({ icons: lucide.icons });
-    if (typeof generatePortfolioAlerts === 'function') {
+    if (tabId === 'tab-notificacoes' && typeof generatePortfolioAlerts === 'function') {
       const alerts = generatePortfolioAlerts(portfolioState, (typeof SHARE_CLASSES_DATA !== 'undefined') ? SHARE_CLASSES_DATA : []);
       markAllNotifsRead(alerts);
     }
-  } else if (tabId === 'tab-relatorio') {
-    const contents = document.querySelectorAll('.tab-content');
-    contents.forEach(c => c.classList.add('hidden'));
-    const el = document.getElementById('tab-relatorio');
-    if (el) { el.classList.remove('hidden'); entrance(el, 'fade-in'); }
-    document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active-tab'));
-    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+    return;
   }
 }
 
@@ -931,7 +930,7 @@ function initNavigation() {
           <td class="py-2.5 px-2 lg:px-3 text-right text-[#4648d4] font-bold whitespace-nowrap">${yoc.toFixed(1)}%</td>
           <td class="py-2.5 px-2 lg:px-3 text-right font-bold text-[#191c1e] whitespace-nowrap">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
           <td class="py-2.5 px-2 lg:px-3 text-right bg-[rgba(70,72,212,0.04)] whitespace-nowrap"><div class="font-bold text-[#4648d4] whitespace-nowrap text-xs">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="text-[10px] text-[#3e4945]/70 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div></td>
-          <td class="py-2.5 px-2 lg:px-3 pr-3 text-center row-actions"><div class="flex items-center justify-center gap-1 flex-nowrap"><button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[rgba(6,182,212,0.08)] hover:bg-[rgba(6,182,212,0.12)] text-[#0891b2] border border-[rgba(6,182,212,0.15)] transition-colors duration-150 active:scale-95 shrink-0 lg:w-auto lg:h-auto lg:px-2 py-1 lg:gap-1"><i data-lucide="microscope" class="shrink-0" style="width:11px;height:11px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span></button><button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" class="inline-flex items-center justify-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-[#00513f] hover:bg-[#006b55] text-white shadow-sm border border-[#00513f] transition-all duration-150 active:scale-95 shrink-0"><i data-lucide="pencil" class="shrink-0" style="width:11px;height:11px"></i> <span>Editar</span></button><button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Remover ativo" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white hover:bg-[#ffdad6] text-[#3e4945] hover:text-[#ba1a1a] border border-[rgba(190,201,195,0.4)] hover:border-[#ba1a1a]/20 transition-colors duration-150 active:scale-95 shrink-0"><i data-lucide="trash-2" class="shrink-0" style="width:11px;height:11px"></i></button></div></td>`;
+          <td class="py-2.5 px-2 lg:px-3 pr-3 text-center row-actions sticky right-0 bg-white z-10 border-l border-[rgba(190,201,195,0.3)] shadow-[-4px_0_8px_rgba(0,0,0,0.03)]"><div class="flex items-center justify-center gap-1 flex-nowrap"><button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[rgba(6,182,212,0.08)] hover:bg-[rgba(6,182,212,0.12)] text-[#0891b2] border border-[rgba(6,182,212,0.15)] transition-colors duration-150 active:scale-95 shrink-0 lg:w-auto lg:h-auto lg:px-2 py-1 lg:gap-1"><i data-lucide="microscope" class="shrink-0" style="width:11px;height:11px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span></button><button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" class="inline-flex items-center justify-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-[#00513f] hover:bg-[#006b55] text-white shadow-sm border border-[#00513f] transition-all duration-150 active:scale-95 shrink-0"><i data-lucide="pencil" class="shrink-0" style="width:11px;height:11px"></i> <span>Editar</span></button><button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Remover ativo" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white hover:bg-[#ffdad6] text-[#3e4945] hover:text-[#ba1a1a] border border-[rgba(190,201,195,0.4)] hover:border-[#ba1a1a]/20 transition-colors duration-150 active:scale-95 shrink-0"><i data-lucide="trash-2" class="shrink-0" style="width:11px;height:11px"></i></button></div></td>`;
         tbody.appendChild(tr);
       });
       if (filtered.length === 0) {
@@ -1294,7 +1293,7 @@ function renderAssetsTable() {
         <div class="font-bold text-indigo-600 whitespace-nowrap text-xs">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         <div class="text-[10px] text-gray-500 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div>
       </td>
-      <td class="py-3 px-2 pr-3 text-center row-actions">
+      <td class="py-3 px-2 pr-3 text-center row-actions sticky right-0 bg-white z-10 border-l border-[rgba(190,201,195,0.3)] shadow-[-4px_0_8px_rgba(0,0,0,0.03)]">
         <div class="flex items-center justify-center gap-1 flex-nowrap">
            <button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" title="Raio-X detalhado (composição e imóveis via Investidor10/StatusInvest)" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/20 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 shrink-0 lg:w-auto lg:h-auto lg:px-2.5 lg:py-1 lg:gap-1">
              <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span>

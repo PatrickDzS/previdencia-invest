@@ -19,6 +19,7 @@ export default function Header({
   avatarAlt = "Avatar do usuário",
   onBellClick,
   onProfileClick,
+  onReportClick,
   unreadNotifications = true,
 }) {
   return (
@@ -58,9 +59,19 @@ export default function Header({
         </div>
       </div>
 
-      {/* Lado Direito — Ações e Perfil */}
+      {/* Lado Direito — Ações e Perfil: Relatório, Bell com dot amber-500, Avatar w-8 h-8 rounded-full + ChevronDown */}
       <div className="flex items-center gap-4 shrink-0">
-        {/* Notificações */}
+        {/* Relatório */}
+        <button
+          type="button"
+          onClick={onReportClick}
+          aria-label="Relatório"
+          className="px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-sm font-medium transition whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          Relatório
+        </button>
+
+        {/* Bell com bolinha amber-500 */}
         <button
           type="button"
           onClick={onBellClick}
@@ -76,7 +87,7 @@ export default function Header({
           )}
         </button>
 
-        {/* Avatar + Chevron */}
+        {/* Avatar circular w-8 h-8 rounded-full border + ChevronDown */}
         <button
           type="button"
           onClick={onProfileClick}
