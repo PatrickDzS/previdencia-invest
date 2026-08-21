@@ -940,6 +940,7 @@ function initNavigation() {
   const notifPopupClose = document.getElementById('btn-notif-popup-close');
   const notifViewAll = document.getElementById('btn-notif-view-all');
   const notifWrapper = document.getElementById('notif-wrapper');
+  const notifBackdrop = document.getElementById('notif-popup-backdrop');
 
   function renderNotifPopup() {
     if (!notifPopupList || typeof generatePortfolioAlerts !== 'function') return;
@@ -989,6 +990,7 @@ function initNavigation() {
     notifPopup.classList.remove('hidden');
     notifPopup.classList.add('flex');
     notifPopup.classList.add('flex-col');
+    if (notifBackdrop) notifBackdrop.classList.remove('hidden');
     notifBtn.setAttribute('aria-expanded', 'true');
     // marca como lido ao abrir
     if (typeof generatePortfolioAlerts === 'function') {
@@ -1001,6 +1003,7 @@ function initNavigation() {
     if (!notifPopup || !notifBtn) return;
     notifPopup.classList.add('hidden');
     notifPopup.classList.remove('flex');
+    if (notifBackdrop) notifBackdrop.classList.add('hidden');
     notifBtn.setAttribute('aria-expanded', 'false');
   }
   notifBtn?.addEventListener('click', (e) => {
@@ -1009,13 +1012,15 @@ function initNavigation() {
     else closeNotifPopup();
   });
   notifPopupClose?.addEventListener('click', closeNotifPopup);
+  notifBackdrop?.addEventListener('click', closeNotifPopup);
   notifViewAll?.addEventListener('click', () => {
     closeNotifPopup();
     window.location.hash = '#/notificacoes';
   });
   document.addEventListener('click', (e) => {
     if (!notifPopup || notifPopup.classList.contains('hidden')) return;
-    if (!notifWrapper.contains(e.target)) closeNotifPopup();
+    const target = e.target;
+    if (!notifWrapper.contains(target) && !notifPopup.contains(target)) closeNotifPopup();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && notifPopup && !notifPopup.classList.contains('hidden')) closeNotifPopup();
