@@ -77,6 +77,8 @@
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: rgba(232,234,237,0.6); }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(110,122,116,0.35); border-radius: 4px; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
     .notif-filter-btn { transition: box-shadow 0.15s ease, background-color 0.15s ease, transform 0.15s ease, filter 0.15s ease; }
     .notif-filter-btn:hover { transform: translateY(-1px); filter: brightness(1.12); }
     .notif-filter-btn.active-notif-filter { box-shadow: 0 0 0 1px rgba(0,81,63,0.25); }
@@ -572,31 +574,21 @@
         </button>
       </div>
 
-      <!-- Assets Table – glass per DESIGN.md -->
-      <div class="glass-card rounded-[12px] p-6 space-y-4">
-        <div class="flex flex-col gap-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 class="text-base font-semibold text-[#191c1e] tracking-tight">Ativos da Carteira</h2>
-              <p class="text-xs text-[#3e4945]/70 mt-0.5">Cotações, preço médio, preço teto de Bazin e provento mensal (tempo real via StatusInvest/Investidor10)</p>
-            </div>
-            <button id="btn-refresh-dividends" title="Buscar dividendos e cotações em tempo real (StatusInvest / Investidor10 / Brapi)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#4648d4] hover:bg-[#6063ee] text-white text-xs font-semibold shadow-[0_4px_20px_rgba(70,72,212,0.25)] transition active:scale-95 shrink-0">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-              <span>Atualizar dividendos</span>
-              <span id="dividends-last-update" class="hidden sm:inline text-[10px] font-medium opacity-80"></span>
-            </button>
+      <!-- Assets Table – glass per DESIGN.md – corte correto sem barra -->
+      <div class="glass-card rounded-[12px] p-6 space-y-4 overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-semibold text-[#191c1e] tracking-tight">Ativos da Carteira</h2>
+            <p class="text-xs text-[#3e4945]/70 mt-0.5">Cotações, preço médio, preço teto de Bazin e provento mensal — filtrável pela busca do cabeçalho</p>
           </div>
-          <div class="flex flex-wrap items-center gap-1.5 pb-1 text-xs">
-            <button data-filter="ALL" class="asset-filter-btn active-filter flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(0,81,63,0.08)] text-[#00513f] border border-[rgba(0,81,63,0.15)] text-xs font-semibold whitespace-nowrap"><i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"></i> Todos</button>
-            <button data-filter="ACAO" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="trending-up" class="w-3.5 h-3.5 shrink-0"></i> Ações</button>
-            <button data-filter="FII_TIJOLO" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="building-2" class="w-3.5 h-3.5 shrink-0"></i> FIIs Tijolo</button>
-            <button data-filter="FII_PAPEL" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i> FIIs Papel</button>
-            <button data-filter="STOCK_USD" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="globe" class="w-3.5 h-3.5 shrink-0"></i> Internacional</button>
-            <button data-filter="RENDA_FIXA" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="percent" class="w-3.5 h-3.5 shrink-0"></i> Renda Fixa</button>
-          </div>
+          <button id="btn-refresh-dividends" title="Buscar dividendos e cotações em tempo real (StatusInvest / Investidor10 / Brapi)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#4648d4] hover:bg-[#6063ee] text-white text-xs font-semibold shadow-[0_4px_20px_rgba(70,72,212,0.25)] transition active:scale-95 shrink-0">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span>Atualizar dividendos</span>
+            <span id="dividends-last-update" class="hidden sm:inline text-[10px] font-medium opacity-80"></span>
+          </button>
         </div>
 
-        <div class="overflow-x-auto custom-scrollbar">
+        <div class="overflow-x-auto scrollbar-hide rounded-[8px] border border-[rgba(190,201,195,0.2)]">
           <table class="w-full text-left text-xs text-[#3e4945] dashboard-table">
             <thead class="bg-[rgba(236,238,240,0.7)] text-[#3e4945]/70 uppercase tracking-widest font-semibold border-b border-[rgba(190,201,195,0.4)] text-[12px]">
               <tr>
