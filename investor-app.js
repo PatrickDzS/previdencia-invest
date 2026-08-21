@@ -928,17 +928,17 @@ function initNavigation() {
         tr.style.cursor = 'pointer';
         tr.addEventListener('click', (ev) => { if (ev.target.closest('button')) return; openEditAsset(asset.ticker); });
         tr.innerHTML = `
-          <td class="py-2.5 px-2 lg:px-3"><div class="flex items-center gap-2"><div class="w-7 h-7 lg:w-8 lg:h-8 rounded-lg bg-[#eceef0] flex items-center justify-center font-bold text-[#00513f] text-[10px] lg:text-[11px] shrink-0 border border-[rgba(190,201,195,0.3)]">${asset.ticker.slice(0, 3)}</div><div class="min-w-0"><div class="font-bold text-[#191c1e] text-xs">${asset.ticker}</div><div class="text-[10px] lg:text-[11px] text-[#3e4945]/70 truncate max-w-[90px] lg:max-w-[130px]">${asset.name}</div></div></div></td>
-          <td class="py-2.5 px-2 lg:px-3"><span class="chip-pill inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold border ${getTypeBadgeClass(asset.type)}"><i data-lucide="${getTypeIcon(asset.type)}" class="shrink-0" style="width:11px;height:11px"></i> ${formatTypeLabel(asset.type)}</span></td>
-          <td class="py-2.5 px-2 lg:px-3 text-right text-[#3e4945] font-bold whitespace-nowrap">${asset.quantity}</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right text-[#3e4945]/70 whitespace-nowrap">R$ ${avgPriceBRL.toFixed(2)}</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right font-bold whitespace-nowrap ${curPriceBRL >= avgPriceBRL ? 'text-[#00513f]' : 'text-[#ba1a1a]'}">R$ ${curPriceBRL.toFixed(2)}</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right text-[#f59e0b] font-bold whitespace-nowrap">R$ ${(bazin * exchange).toFixed(2)}</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right font-bold whitespace-nowrap ${margin >= 0 ? 'text-[#00513f]' : 'text-[#ba1a1a]'}">${margin >= 0 ? '+' : ''}${margin.toFixed(1)}%</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right text-[#4648d4] font-bold whitespace-nowrap">${yoc.toFixed(1)}%</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right font-bold text-[#191c1e] whitespace-nowrap">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-2.5 px-2 lg:px-3 text-right bg-[rgba(70,72,212,0.04)] whitespace-nowrap"><div class="font-bold text-[#4648d4] whitespace-nowrap text-xs">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="text-[10px] text-[#3e4945]/70 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div></td>
-          <td class="py-2.5 px-2 lg:px-3 pr-3 text-center row-actions bg-white w-[132px] min-w-[132px] max-w-[132px] overflow-hidden"><div class="flex items-center justify-center gap-1 flex-nowrap w-full max-w-full mx-auto"><button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[rgba(6,182,212,0.08)] hover:bg-[rgba(6,182,212,0.12)] text-[#0891b2] border border-[rgba(6,182,212,0.15)] transition-colors duration-150 active:scale-95 shrink-0 lg:w-auto lg:h-auto lg:px-2 py-1 lg:gap-1"><i data-lucide="microscope" class="shrink-0" style="width:11px;height:11px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span></button><button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" class="inline-flex items-center justify-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-[#00513f] hover:bg-[#006b55] text-white shadow-sm border border-[#00513f] transition-all duration-150 active:scale-95 shrink-0"><i data-lucide="pencil" class="shrink-0" style="width:11px;height:11px"></i> <span>Editar</span></button><button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Remover ativo" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white hover:bg-[#ffdad6] text-[#3e4945] hover:text-[#ba1a1a] border border-[rgba(190,201,195,0.4)] hover:border-[#ba1a1a]/20 transition-colors duration-150 active:scale-95 shrink-0"><i data-lucide="trash-2" class="shrink-0" style="width:11px;height:11px"></i></button></div></td>`;
+          <td class="py-2.5 px-1.5 lg:px-2"><div class="flex items-center gap-2"><div class="w-7 h-7 lg:w-8 lg:h-8 rounded-lg bg-[#eceef0] flex items-center justify-center font-bold text-[#00513f] text-[10px] lg:text-[11px] shrink-0 border border-[rgba(190,201,195,0.3)]">${asset.ticker.slice(0, 3)}</div><div class="min-w-0"><div class="font-bold text-[#191c1e] text-xs">${asset.ticker}</div><div class="text-[10px] lg:text-[11px] text-[#3e4945]/70 truncate max-w-[90px] lg:max-w-[130px]">${asset.name}</div></div></div></td>
+          <td class="py-2.5 px-1.5 lg:px-2 hidden md:table-cell"><span class="chip-pill inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold border ${getTypeBadgeClass(asset.type)}"><i data-lucide="${getTypeIcon(asset.type)}" class="shrink-0" style="width:11px;height:11px"></i> ${formatTypeLabel(asset.type)}</span></td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right text-[#3e4945] font-bold whitespace-nowrap">${asset.quantity}</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right text-[#3e4945]/70 whitespace-nowrap hidden lg:table-cell">R$ ${avgPriceBRL.toFixed(2)}</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right font-bold whitespace-nowrap ${curPriceBRL >= avgPriceBRL ? 'text-[#00513f]' : 'text-[#ba1a1a]'}">R$ ${curPriceBRL.toFixed(2)}</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right text-[#f59e0b] font-bold whitespace-nowrap">R$ ${(bazin * exchange).toFixed(2)}</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right font-bold whitespace-nowrap ${margin >= 0 ? 'text-[#00513f]' : 'text-[#ba1a1a]'}">${margin >= 0 ? '+' : ''}${margin.toFixed(1)}%</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right text-[#4648d4] hidden sm:table-cell font-bold whitespace-nowrap">${yoc.toFixed(1)}%</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right font-bold text-[#191c1e] hidden xl:table-cell whitespace-nowrap">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-2.5 px-1.5 lg:px-2 text-right bg-[rgba(70,72,212,0.04)] whitespace-nowrap"><div class="font-bold text-[#4648d4] whitespace-nowrap text-xs">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="text-[10px] text-[#3e4945]/70 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div></td>
+          <td class="py-2.5 px-1.5 lg:px-2 pr-3 text-center row-actions bg-white w-[112px] min-w-[112px] max-w-[112px] overflow-hidden"><div class="flex items-center justify-center gap-1 flex-nowrap w-full max-w-full mx-auto"><button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[rgba(6,182,212,0.08)] hover:bg-[rgba(6,182,212,0.12)] text-[#0891b2] border border-[rgba(6,182,212,0.15)] transition-colors duration-150 active:scale-95 shrink-0 lg:w-auto lg:h-auto lg:px-2 py-1 lg:gap-1"><i data-lucide="microscope" class="shrink-0" style="width:11px;height:11px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span></button><button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" class="inline-flex items-center justify-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-[#00513f] hover:bg-[#006b55] text-white shadow-sm border border-[#00513f] transition-all duration-150 active:scale-95 shrink-0"><i data-lucide="pencil" class="shrink-0" style="width:11px;height:11px"></i> <span>Editar</span></button><button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Remover ativo" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white hover:bg-[#ffdad6] text-[#3e4945] hover:text-[#ba1a1a] border border-[rgba(190,201,195,0.4)] hover:border-[#ba1a1a]/20 transition-colors duration-150 active:scale-95 shrink-0"><i data-lucide="trash-2" class="shrink-0" style="width:11px;height:11px"></i></button></div></td>`;
         tbody.appendChild(tr);
       });
       if (filtered.length === 0) {
@@ -1269,7 +1269,7 @@ function renderAssetsTable() {
       openEditAsset(asset.ticker);
     });
     tr.innerHTML = `
-      <td class="py-2.5 px-2 lg:px-3">
+      <td class="py-2.5 px-1.5 lg:px-2">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 lg:w-8 lg:h-8 rounded-lg bg-[#eceef0] flex items-center justify-center font-bold text-[#00513f] text-[10px] lg:text-[11px] shrink-0 border border-[rgba(190,201,195,0.3)]">
             ${asset.ticker.slice(0, 3)}
@@ -1280,28 +1280,27 @@ function renderAssetsTable() {
           </div>
         </div>
       </td>
-      <td class="py-2.5 px-2 lg:px-3">
-        <span class="chip-pill inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold border ${getTypeBadgeClass(asset.type)}">
+      <td class="py-2.5 px-1.5 lg:px-2 hidden md:table-cell"><span class="chip-pill inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold border ${getTypeBadgeClass(asset.type)}">
           <i data-lucide="${getTypeIcon(asset.type)}" class="shrink-0" style="width:11px;height:11px"></i>
           ${formatTypeLabel(asset.type)}
         </span>
       </td>
-      <td class="py-2.5 px-2 lg:px-3 text-right text-gray-700 font-bold whitespace-nowrap">${asset.quantity}</td>
-      <td class="py-2.5 px-2 lg:px-3 text-right text-gray-500 whitespace-nowrap">R$ ${avgPriceBRL.toFixed(2)}</td>
-      <td class="py-2.5 px-2 lg:px-3 text-right font-bold whitespace-nowrap ${curPriceBRL >= avgPriceBRL ? 'text-emerald-400' : 'text-rose-400'}">
+      <td class="py-2.5 px-1.5 lg:px-2 text-right text-gray-700 font-bold whitespace-nowrap">${asset.quantity}</td>
+      <td class="py-2.5 px-1.5 lg:px-2 text-right text-gray-500 whitespace-nowrap hidden lg:table-cell">R$ ${avgPriceBRL.toFixed(2)}</td>
+      <td class="py-2.5 px-1.5 lg:px-2 text-right font-bold whitespace-nowrap ${curPriceBRL >= avgPriceBRL ? 'text-emerald-400' : 'text-rose-400'}">
         R$ ${curPriceBRL.toFixed(2)}
       </td>
-      <td class="py-2.5 px-2 lg:px-3 text-right text-amber-400 font-bold whitespace-nowrap">R$ ${(bazin * exchange).toFixed(2)}</td>
-      <td class="py-2.5 px-2 lg:px-3 text-right font-bold whitespace-nowrap ${margin >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+      <td class="py-2.5 px-1.5 lg:px-2 text-right text-amber-400 hidden lg:table-cell font-bold whitespace-nowrap">R$ ${(bazin * exchange).toFixed(2)}</td>
+      <td class="py-2.5 px-1.5 lg:px-2 text-right font-bold whitespace-nowrap ${margin >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
         ${margin >= 0 ? '+' : ''}${margin.toFixed(1)}%
       </td>
-      <td class="py-2.5 px-2 lg:px-3 text-right text-indigo-400 font-bold whitespace-nowrap">${yoc.toFixed(1)}%</td>
-      <td class="py-2.5 px-2 lg:px-3 text-right font-bold text-gray-900 whitespace-nowrap">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      <td class="py-2.5 px-2 lg:px-3 text-right bg-indigo-500/5 whitespace-nowrap" title="Provento mensal: ${asset.quantity}×R$ ${monthlyPerShareBRL.toFixed(2)} = R$ ${monthlyTotalBRL.toFixed(2)} — dados ao vivo via StatusInvest/Investidor10 (Brapi)">
+      <td class="py-2.5 px-1.5 lg:px-2 text-right text-indigo-400 hidden sm:table-cell font-bold whitespace-nowrap">${yoc.toFixed(1)}%</td>
+      <td class="py-2.5 px-1.5 lg:px-2 text-right font-bold text-gray-900 hidden xl:table-cell whitespace-nowrap">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td class="py-2.5 px-1.5 lg:px-2 text-right bg-indigo-500/5 whitespace-nowrap" title="Provento mensal: ${asset.quantity}×R$ ${monthlyPerShareBRL.toFixed(2)} = R$ ${monthlyTotalBRL.toFixed(2)} — dados ao vivo via StatusInvest/Investidor10 (Brapi)">
         <div class="font-bold text-indigo-600 whitespace-nowrap text-xs">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         <div class="text-[10px] text-gray-500 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div>
       </td>
-      <td class="py-3 px-2 pr-3 text-center row-actions bg-white w-[132px] min-w-[132px] max-w-[132px] overflow-hidden">
+      <td class="py-3 px-2 pr-3 text-center row-actions bg-white w-[112px] min-w-[112px] max-w-[112px] overflow-hidden">
         <div class="flex items-center justify-center gap-1 flex-nowrap w-full max-w-full mx-auto">
            <button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" title="Raio-X detalhado (composição e imóveis via Investidor10/StatusInvest)" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/20 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 shrink-0 lg:w-auto lg:h-auto lg:px-2.5 lg:py-1 lg:gap-1">
              <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span>
@@ -1350,7 +1349,7 @@ function renderRadarTable() {
         <span class="text-[10px] text-gray-500">(${asset.type})</span>
       </td>
       <td class="py-3 px-4 text-right text-gray-700 font-bold">R$ ${asset.currentPrice.toFixed(2)}</td>
-      <td class="py-3 px-4 text-right text-amber-400 font-bold">R$ ${bazin.toFixed(2)}</td>
+      <td class="py-3 px-4 text-right text-amber-400 hidden lg:table-cell font-bold">R$ ${bazin.toFixed(2)}</td>
       <td class="py-3 px-4 text-right font-bold ${margin >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
         ${margin >= 0 ? '+' : ''}${margin.toFixed(1)}%
       </td>
@@ -1591,7 +1590,7 @@ function renderRaioXDetail(ticker = null) {
         <td class="py-2.5 px-3 text-gray-600">${p.city}/${p.state}</td>
         <td class="py-2.5 px-3 text-right text-gray-700 font-bold">${p.grossLeasableAreaM2.toLocaleString('pt-BR')} m²</td>
         <td class="py-2.5 px-3 text-right text-emerald-400 font-bold">${p.revenuePercent}%</td>
-        <td class="py-2.5 px-3 text-right text-indigo-400 font-bold">${p.occupancyPercent}%</td>
+        <td class="py-2.5 px-3 text-right text-indigo-400 hidden sm:table-cell font-bold">${p.occupancyPercent}%</td>
         <td class="py-2.5 px-3 text-gray-600 text-xs">${p.mainTenants.join(', ')}</td>
       </tr>
     `).join('');
@@ -1627,7 +1626,7 @@ function renderRaioXDetail(ticker = null) {
         <td class="py-2.5 px-3 font-bold text-gray-900">${d.code}</td>
         <td class="py-2.5 px-3 text-gray-600">${d.debtor}</td>
         <td class="py-2.5 px-3 text-center text-amber-400 font-bold">${d.indexer} + ${d.interestRateSpread}%</td>
-        <td class="py-2.5 px-3 text-right text-indigo-400 font-bold">${d.ltvPercent}%</td>
+        <td class="py-2.5 px-3 text-right text-indigo-400 hidden sm:table-cell font-bold">${d.ltvPercent}%</td>
         <td class="py-2.5 px-3 text-gray-500 text-xs">${d.guarantees}</td>
       </tr>
     `).join('');
@@ -2440,7 +2439,7 @@ function renderImporterPreview(txs = []) {
       <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${tx.type === 'BUY' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">${tx.type === 'BUY' ? 'COMPRA' : 'VENDA'}</span></td>
       <td class="py-2 px-3 text-right text-gray-700 font-bold">${tx.quantity}</td>
       <td class="py-2 px-3 text-right text-gray-600">R$ ${tx.unitPrice.toFixed(2)}</td>
-      <td class="py-2 px-3 text-right font-bold text-gray-900">R$ ${tx.totalAmount.toFixed(2)}</td>
+      <td class="py-2 px-3 text-right font-bold text-gray-900 hidden xl:table-cell">R$ ${tx.totalAmount.toFixed(2)}</td>
     `;
 tbody.appendChild(tr);
   });
