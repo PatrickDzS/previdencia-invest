@@ -774,13 +774,11 @@ function initNavigation() {
     const isHeaderNotif = btn === headerNotifBtn;
 
     tabBtns.forEach(b => {
-      b.classList.remove('active-tab', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
-      b.classList.add('text-gray-500', 'hover:bg-gray-200', 'border-transparent');
+      b.classList.remove('active-tab');
     });
 
     if (!isHeaderNotif) {
-      btn.classList.add('active-tab', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
-      btn.classList.remove('text-gray-500', 'hover:bg-gray-200', 'border-transparent');
+      btn.classList.add('active-tab');
     }
 
     if (headerNotifBtn) {
@@ -843,11 +841,11 @@ function initNavigation() {
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
 filterBtns.forEach(b => {
-        b.classList.remove('active-filter', 'bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/30');
-        b.classList.add('bg-gray-200', 'text-gray-600');
+        b.classList.remove('active-filter', 'bg-[rgba(0,81,63,0.08)]', 'text-[#00513f]', 'border', 'border-[rgba(0,81,63,0.15)]');
+        b.classList.add('bg-[#eceef0]', 'text-[#3e4945]', 'border-transparent');
       });
-      btn.classList.add('active-filter', 'bg-emerald-500/10', 'text-emerald-400');
-btn.classList.remove('bg-gray-200', 'text-gray-600');
+      btn.classList.add('active-filter', 'bg-[rgba(0,81,63,0.08)]', 'text-[#00513f]', 'border', 'border-[rgba(0,81,63,0.15)]');
+btn.classList.remove('bg-[#eceef0]', 'text-[#3e4945]', 'border-transparent');
       activeFilter = btn.getAttribute('data-filter');
       renderAssetsTable();
       if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
@@ -999,7 +997,7 @@ function renderAssetsTable() {
     const monthlyTotalBRL = monthlyPerShareBRL * (Number(asset.quantity) || 0);
 
     const tr = document.createElement('tr');
-    tr.className = 'hover:bg-gray-200/40 transition font-medium group';
+    tr.className = 'hover:bg-[rgba(236,238,240,0.5)] transition font-medium group';
     tr.title = 'Clique para editar ' + asset.ticker;
     tr.style.cursor = 'pointer';
     tr.addEventListener('click', (e) => {
@@ -1009,17 +1007,17 @@ function renderAssetsTable() {
     tr.innerHTML = `
       <td class="py-3 px-4">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center font-bold text-emerald-400 text-[11px] shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-[#eceef0] flex items-center justify-center font-bold text-[#00513f] text-[11px] shrink-0 border border-[rgba(190,201,195,0.3)]">
             ${asset.ticker.slice(0, 3)}
           </div>
           <div class="min-w-0">
-            <div class="font-bold text-gray-900 text-xs">${asset.ticker}</div>
-            <div class="text-[11px] text-gray-500 truncate max-w-[130px]">${asset.name}</div>
+            <div class="font-bold text-[#191c1e] text-xs">${asset.ticker}</div>
+            <div class="text-[11px] text-[#3e4945]/70 truncate max-w-[130px]">${asset.name}</div>
           </div>
         </div>
       </td>
       <td class="py-3 px-4">
-        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold ${getTypeBadgeClass(asset.type)}">
+        <span class="chip-pill inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getTypeBadgeClass(asset.type)}">
           <i data-lucide="${getTypeIcon(asset.type)}" class="shrink-0" style="width:12px;height:12px"></i>
           ${formatTypeLabel(asset.type)}
         </span>
@@ -1039,7 +1037,7 @@ function renderAssetsTable() {
         <div class="font-bold text-indigo-600 whitespace-nowrap">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         <div class="text-[10px] text-gray-500 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div>
       </td>
-      <td class="py-3 px-2 text-center">
+      <td class="py-3 px-2 text-center row-actions">
         <div class="flex items-center justify-center gap-1 flex-nowrap">
            <button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" title="Raio-X detalhado (composição e imóveis via Investidor10/StatusInvest)" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/20 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 shrink-0 lg:w-auto lg:h-auto lg:px-2.5 lg:py-1 lg:gap-1">
              <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span>
@@ -1950,14 +1948,14 @@ function formatTypeLabel(type) {
 
 function getTypeBadgeClass(type) {
   const map = {
-    'ACAO': 'bg-emerald-500/10 text-emerald-400',
-    'FII_TIJOLO': 'bg-cyan-500/10 text-cyan-400',
-    'FII_PAPEL': 'bg-amber-500/10 text-amber-400',
-    'STOCK_USD': 'bg-indigo-500/10 text-indigo-400',
-    'ETF': 'bg-pink-500/10 text-pink-400',
-    'RENDA_FIXA': 'bg-yellow-500/10 text-yellow-400'
+    'ACAO': 'bg-[rgba(0,81,63,0.08)] text-[#00513f] border-[rgba(0,81,63,0.15)]',
+    'FII_TIJOLO': 'bg-[rgba(6,182,212,0.08)] text-[#0891b2] border-[rgba(6,182,212,0.15)]',
+    'FII_PAPEL': 'bg-[rgba(245,158,11,0.08)] text-[#b45309] border-[rgba(245,158,11,0.15)]',
+    'STOCK_USD': 'bg-[rgba(70,72,212,0.08)] text-[#4648d4] border-[rgba(70,72,212,0.15)]',
+    'ETF': 'bg-[rgba(236,72,153,0.08)] text-[#be185d] border-[rgba(236,72,153,0.15)]',
+    'RENDA_FIXA': 'bg-[rgba(245,158,11,0.10)] text-[#92400e] border-[rgba(245,158,11,0.20)]'
   };
-  return map[type] || 'bg-gray-200 text-gray-600';
+  return map[type] || 'bg-[#eceef0] text-[#3e4945] border-[rgba(190,201,195,0.4)]';
 }
 
 function getTypeIcon(type) {

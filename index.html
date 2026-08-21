@@ -20,42 +20,127 @@
       theme: {
         extend: {
           colors: {
-            brand: { 50: '#ecfdf5', 500: '#10b981', 600: '#059669', 700: '#047857' }
-          }
+            brand: { 50: '#ecfdf5', 500: '#10b981', 600: '#059669', 700: '#047857' },
+            surface: '#f7f9fb',
+            'surface-dim': '#d8dadc',
+            'surface-bright': '#f7f9fb',
+            'surface-lowest': '#ffffff',
+            'surface-low': '#f2f4f6',
+            'surface-container': '#eceef0',
+            'surface-high': '#e6e8ea',
+            'surface-highest': '#e0e3e5',
+            'on-surface': '#191c1e',
+            'on-variant': '#3e4945',
+            'inverse-surface': '#2d3133',
+            'outline': '#6e7a74',
+            'outline-variant': '#bec9c3',
+            'primary': '#00513f',
+            'on-primary': '#ffffff',
+            'primary-container': '#006b55',
+            'on-primary-container': '#94e8cc',
+            'secondary': '#4648d4',
+            'on-secondary': '#ffffff',
+            'secondary-container': '#6063ee',
+            'tertiary': '#3e465b',
+            'error': '#ba1a1a',
+            'success-emerald': '#10b981',
+            'warning-amber': '#f59e0b',
+          },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+          borderRadius: { 'xl': '0.75rem', '2xl': '1rem' },
+          boxShadow: { 'glass': '0 4px 30px rgba(70,72,212,0.05)', 'glass-hover': '0 8px 30px rgba(70,72,212,0.08)', 'primary-glow': '0 4px 20px rgba(0,107,85,0.39)' }
         }
       }
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    :root {
+      --surface: #f7f9fb;
+      --surface-lowest: #ffffff;
+      --surface-low: #f2f4f6;
+      --surface-container: #eceef0;
+      --surface-high: #e6e8ea;
+      --outline-variant: #bec9c3;
+      --primary: #00513f;
+      --primary-container: #006b55;
+      --secondary: #4648d4;
+      --on-surface: #191c1e;
+      --on-variant: #3e4945;
+      --radius-xl: 0.75rem;
+      --radius-2xl: 1rem;
+    }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--on-surface); }
     .mono { font-family: 'JetBrains Mono', monospace; }
+    h1,h2,h3 { letter-spacing: -0.01em; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(229, 231, 235, 0.6); }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.6); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(232,234,237,0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(110,122,116,0.35); border-radius: 4px; }
     .notif-filter-btn { transition: box-shadow 0.15s ease, background-color 0.15s ease, transform 0.15s ease, filter 0.15s ease; }
     .notif-filter-btn:hover { transform: translateY(-1px); filter: brightness(1.12); }
-    .notif-filter-btn.active-notif-filter { box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.55); }
+    .notif-filter-btn.active-notif-filter { box-shadow: 0 0 0 1px rgba(0,81,63,0.25); }
     .tab-btn span { white-space: nowrap; }
-
+    .tab-btn.active-tab { background: rgba(0,81,63,0.08); color: var(--primary); border-color: rgba(0,81,63,0.15); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     .tab-content { animation: tab-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
-    @keyframes tab-enter {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes tab-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    /* Glassmorphism per DESIGN.md */
+    .glass-card {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 4px 30px rgba(70,72,212,0.05);
+      border-radius: 12px;
     }
-
-    .metric-value { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
-
+    .glass-card:hover { box-shadow: 0 8px 30px rgba(70,72,212,0.08); border-color: rgba(255,255,255,0.7); }
+    .glass-sidebar {
+      background: rgba(242,244,246,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(190,201,195,0.5);
+    }
+    .top-app-bar {
+      background: rgba(247,249,251,0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(190,201,195,0.4);
+    }
     .card-primary {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 1) 60%);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      background: linear-gradient(135deg, rgba(0,107,85,0.06) 0%, rgba(255,255,255,0.9) 60%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 4px 30px rgba(70,72,212,0.05);
     }
-    .card-primary:hover { border-color: rgba(16, 185, 129, 0.35); }
+    .card-primary:hover { border-color: rgba(0,107,85,0.18); box-shadow: 0 8px 30px rgba(70,72,212,0.08); }
+    /* Metric glow bottom-right */
+    .metric-glow::after {
+      content:'';
+      position:absolute;
+      right:-20px; bottom:-20px;
+      width:120px; height:120px;
+      border-radius:9999px;
+      filter: blur(24px);
+      opacity:0.07;
+      pointer-events:none;
+    }
+    .metric-glow--emerald::after { background:#10b981; }
+    .metric-glow--indigo::after { background:#6366f1; }
+    .metric-glow--amber::after { background:#f59e0b; }
+    .metric-glow--pink::after { background:#ec4899; }
+    /* Chips pill */
+    .chip-pill { border-radius:9999px; font-size:12px; font-weight:600; letter-spacing:0.01em; }
+    /* Dashboard table per DESIGN.md */
+    .dashboard-table tbody tr { transition: background 0.2s ease; }
+    .dashboard-table tbody tr:hover { background: rgba(236,238,240,0.5); }
+    .dashboard-table .row-actions { opacity:0; transition: opacity 0.2s ease; }
+    .dashboard-table tbody tr:hover .row-actions { opacity:1; }
+    @media (max-width: 768px) { .dashboard-table .row-actions { opacity:1; } }
   </style>
   <link rel="stylesheet" href="/src/styles/animations.css">
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen antialiased flex flex-col custom-scrollbar overflow-x-hidden">
+<body class="bg-[#f7f9fb] text-[#191c1e] min-h-screen antialiased flex flex-col custom-scrollbar overflow-x-hidden">
 
   <!-- Login Gate: primeira tela acessada (autenticação obrigatória) -->
   <div id="login-gate" class="fixed inset-0 z-[80] bg-gray-100 overflow-y-auto custom-scrollbar" aria-label="Tela de acesso">
@@ -182,8 +267,8 @@
     </div>
   </div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 lg:ml-64 py-3 transition-all">
+  <!-- Header – TopAppBar per DESIGN.md: blur 80% + 260px offset -->
+  <header class="sticky top-0 z-50 top-app-bar lg:ml-[260px] py-3 transition-all">
     <div class="max-w-7xl mx-auto px-4 lg:px-8 flex flex-wrap lg:flex-nowrap items-center justify-between gap-x-4 gap-y-2">
       <div class="flex items-center gap-3">
         <button id="btn-menu-toggle" title="Abrir menu" aria-label="Abrir menu" aria-expanded="false" class="lg:hidden p-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 transition">
@@ -245,9 +330,9 @@
     </div>
   </header>
 
-  <!-- Sidebar / Menu Lateral (fixo no desktop, drawer no mobile) -->
+  <!-- Sidebar / Menu Lateral – Fixed 260px per DESIGN.md -->
   <div id="menu-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] lg:hidden hidden"></div>
-  <aside id="sidebar-menu" aria-label="Menu principal" class="fixed inset-y-0 left-0 w-64 z-[60] bg-white border-r border-gray-200 p-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar transition-transform duration-300 -translate-x-full lg:translate-x-0">
+  <aside id="sidebar-menu" aria-label="Menu principal" class="fixed inset-y-0 left-0 w-[260px] z-[60] glass-sidebar p-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar transition-transform duration-300 -translate-x-full lg:translate-x-0">
     <div class="flex items-center justify-between mb-4 lg:hidden">
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -260,52 +345,52 @@
       </button>
     </div>
 
-    <span class="hidden lg:flex items-center gap-2 px-3 py-2 mb-1 text-gray-500 text-[10px] font-medium uppercase tracking-widest">
+    <span class="hidden lg:flex items-center gap-2 px-3 py-2 mb-1 text-[#3e4945]/70 text-[10px] font-semibold uppercase tracking-widest">
       Menu
     </span>
 
-    <button data-tab="tab-dashboard" class="tab-btn active-tab flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition text-sm">
+    <button data-tab="tab-dashboard" class="tab-btn active-tab flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg bg-[rgba(0,81,63,0.08)] text-[#00513f] border border-[rgba(0,81,63,0.15)] transition text-sm font-medium">
       <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i><span>Dashboard & Carteira</span>
     </button>
-    <button data-tab="tab-classes" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="scale" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>Comparador de Classes</span>
+    <button data-tab="tab-classes" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="scale" class="w-4 h-4 text-[#006b55] shrink-0"></i><span>Comparador de Classes</span>
     </button>
-    <button data-tab="tab-radar" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="crosshair" class="w-4 h-4 text-amber-400 shrink-0"></i><span>Radar do Pregão</span>
+    <button data-tab="tab-radar" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="crosshair" class="w-4 h-4 text-[#f59e0b] shrink-0"></i><span>Radar do Pregão</span>
     </button>
-    <button data-tab="tab-noticias" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="newspaper" class="w-4 h-4 text-sky-400 shrink-0"></i><span>Notícias do Mercado</span>
+    <button data-tab="tab-noticias" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="newspaper" class="w-4 h-4 text-[#06b6d4] shrink-0"></i><span>Notícias do Mercado</span>
     </button>
-    <button data-tab="tab-mdi" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="calendar" class="w-4 h-4 text-indigo-400 shrink-0"></i><span>Mapa do Dividendo</span>
+    <button data-tab="tab-mdi" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="calendar" class="w-4 h-4 text-[#4648d4] shrink-0"></i><span>Mapa do Dividendo</span>
     </button>
-    <button data-tab="tab-raiox" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="microscope" class="w-4 h-4 text-cyan-400 shrink-0"></i><span>Raio-X de Ativos</span>
+    <button data-tab="tab-raiox" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="microscope" class="w-4 h-4 text-[#06b6d4] shrink-0"></i><span>Raio-X de Ativos</span>
     </button>
-    <button data-tab="tab-performance" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="bar-chart-3" class="w-4 h-4 text-sky-400 shrink-0"></i><span>Performance</span>
+    <button data-tab="tab-performance" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#4648d4] shrink-0"></i><span>Performance</span>
     </button>
-    <button data-tab="tab-academia" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>Academia do Investidor</span>
+    <button data-tab="tab-academia" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="graduation-cap" class="w-4 h-4 text-[#006b55] shrink-0"></i><span>Academia do Investidor</span>
     </button>
-    <button data-tab="tab-liberdade" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="plane" class="w-4 h-4 text-pink-400 shrink-0"></i><span>Liberdade Financeira</span>
+    <button data-tab="tab-liberdade" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="plane" class="w-4 h-4 text-[#ec4899] shrink-0"></i><span>Liberdade Financeira</span>
     </button>
-    <button data-tab="tab-fiscal" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm">
-      <i data-lucide="receipt" class="w-4 h-4 text-yellow-400 shrink-0"></i><span>IR & DARF</span>
+    <button data-tab="tab-fiscal" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
+      <i data-lucide="receipt" class="w-4 h-4 text-[#f59e0b] shrink-0"></i><span>IR & DARF</span>
     </button>
 
     <!-- Perfil & Configuração -->
-    <div class="mt-auto pt-4 border-t border-gray-200/80 space-y-1">
-      <button data-tab="tab-perfil" id="profile-card" class="tab-btn flex items-center gap-3 px-2.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition text-sm w-full">
-        <div id="profile-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shrink-0 overflow-hidden">
+    <div class="mt-auto pt-4 border-t border-[rgba(190,201,195,0.5)] space-y-1">
+      <button data-tab="tab-perfil" id="profile-card" class="tab-btn flex items-center gap-3 px-2.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm w-full font-medium">
+        <div id="profile-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-[#006b55] to-[#00513f] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_2px_8px_rgba(0,81,63,0.25)]">
           <img id="profile-avatar-img" src="" alt="Avatar" class="hidden w-full h-full object-cover">
-          <i data-lucide="user" id="profile-avatar-icon" class="w-4 h-4 text-gray-950"></i>
+          <i data-lucide="user" id="profile-avatar-icon" class="w-4 h-4 text-white"></i>
         </div>
-        <span id="profile-name" class="truncate font-semibold text-gray-900">Perfil</span>
+        <span id="profile-name" class="truncate font-semibold text-[#191c1e]">Perfil</span>
       </button>
-      <button data-tab="tab-config" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm w-full">
-        <i data-lucide="settings" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+      <button data-tab="tab-config" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm w-full font-medium">
+        <i data-lucide="settings" class="w-4 h-4 text-[#4648d4] shrink-0"></i>
         <span>Configuração</span>
       </button>
     </div>
@@ -315,62 +400,61 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
-  <main class="flex-1 lg:ml-64 relative overflow-hidden">
+  <!-- Main Content – per DESIGN.md: 260px sidebar + fluid -->
+  <main class="flex-1 lg:ml-[260px] relative overflow-hidden">
     <div class="max-w-7xl mx-auto p-4 lg:p-8 space-y-6 relative">
 
     <!-- TAB 1: DASHBOARD -->
     <section id="tab-dashboard" class="tab-content space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card Principal: Patrimônio -->
-        <div class="card-primary rounded-2xl p-5 relative overflow-hidden shadow-xl hover:shadow-emerald-500/10 hover:scale-[1.01] transition-all duration-300">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/[0.06] rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card Principal: Patrimônio – glow emerald -->
+        <div class="card-primary metric-glow metric-glow--emerald rounded-[12px] p-6 relative overflow-hidden hover:scale-[1.01] transition-all duration-300">
+          <div class="flex items-center justify-between text-[#3e4945] text-[12px] font-semibold tracking-[0.01em] mb-3">
             <span>Patrimônio Total</span>
-            <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"><i data-lucide="wallet" class="w-4 h-4"></i></div>
+            <div class="p-2 rounded-lg bg-[rgba(0,107,85,0.08)] text-[#00513f]"><i data-lucide="wallet" class="w-4 h-4"></i></div>
           </div>
-          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-total-patrimony">R$ 0,00</div>
-          <div class="mt-3 flex items-center gap-2 text-xs font-medium">
-            <span class="text-emerald-400 flex items-center gap-1" id="metric-total-return"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +0,00%</span>
-            <span class="text-gray-500">rentabilidade total</span>
+          <div class="metric-value text-2xl font-bold text-[#191c1e] tracking-tight" id="metric-total-patrimony">R$ 0,00</div>
+          <div class="mt-3 flex items-center gap-2 text-[12px] font-medium">
+            <span class="text-[#006b55] flex items-center gap-1" id="metric-total-return"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +0,00%</span>
+            <span class="text-[#3e4945]/70">rentabilidade total</span>
           </div>
         </div>
 
-        <!-- Renda Mensal -->
-        <div class="bg-white border border-gray-200/80 rounded-2xl p-5 relative overflow-hidden shadow-lg hover:border-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
-          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+        <!-- Renda Mensal – glow indigo/secondary -->
+        <div class="glass-card metric-glow metric-glow--indigo rounded-[12px] p-6 relative overflow-hidden hover:scale-[1.01] transition-all duration-300">
+          <div class="flex items-center justify-between text-[#3e4945] text-[12px] font-semibold tracking-[0.01em] mb-3">
             <span>Renda Mensal Estimada</span>
-            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400"><i data-lucide="coins" class="w-4 h-4"></i></div>
+            <div class="p-2 rounded-lg bg-[rgba(70,72,212,0.08)] text-[#4648d4]"><i data-lucide="coins" class="w-4 h-4"></i></div>
           </div>
-          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-monthly-dividend">R$ 0,00 <span class="text-xs font-medium text-gray-500">/mês</span></div>
-          <div class="mt-3 metric-value text-xs font-medium text-indigo-400/80" id="metric-annual-dividend">R$ 0,00 / ano projetado</div>
+          <div class="metric-value text-2xl font-bold text-[#191c1e] tracking-tight" id="metric-monthly-dividend">R$ 0,00 <span class="text-xs font-medium text-[#3e4945]/70">/mês</span></div>
+          <div class="mt-3 metric-value text-[12px] font-medium text-[#4648d4]/80" id="metric-annual-dividend">R$ 0,00 / ano projetado</div>
         </div>
 
-        <!-- Yield on Cost -->
-        <div class="bg-white border border-gray-200/80 rounded-2xl p-5 relative overflow-hidden shadow-lg hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300">
-          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+        <!-- Yield on Cost – glow amber -->
+        <div class="glass-card metric-glow metric-glow--amber rounded-[12px] p-6 relative overflow-hidden hover:scale-[1.01] transition-all duration-300">
+          <div class="flex items-center justify-between text-[#3e4945] text-[12px] font-semibold tracking-[0.01em] mb-3">
             <span>Yield on Cost (YoC)</span>
-            <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="percent" class="w-4 h-4"></i></div>
+            <div class="p-2 rounded-lg bg-[rgba(245,158,11,0.10)] text-[#f59e0b]"><i data-lucide="percent" class="w-4 h-4"></i></div>
           </div>
-          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-yoc-average">0,00% <span class="text-xs font-medium text-gray-500">a.a.</span></div>
-          <div class="mt-3 text-xs text-amber-400/80">Yield sobre custo de aquisição</div>
+          <div class="metric-value text-2xl font-bold text-[#191c1e] tracking-tight" id="metric-yoc-average">0,00% <span class="text-xs font-medium text-[#3e4945]/70">a.a.</span></div>
+          <div class="mt-3 text-[12px] text-[#f59e0b]/80 font-medium">Yield sobre custo de aquisição</div>
         </div>
 
-        <!-- Meta de Liberdade -->
-        <div class="bg-white border border-gray-200/80 rounded-2xl p-5 relative overflow-hidden shadow-lg hover:border-pink-500/20 hover:shadow-lg hover:shadow-pink-500/5 transition-all duration-300">
-          <div class="flex items-center justify-between text-gray-500 text-xs font-medium mb-3">
+        <!-- Meta de Liberdade – glow pink -->
+        <div class="glass-card metric-glow metric-glow--pink rounded-[12px] p-6 relative overflow-hidden hover:scale-[1.01] transition-all duration-300">
+          <div class="flex items-center justify-between text-[#3e4945] text-[12px] font-semibold tracking-[0.01em] mb-3">
             <span>Meta de Liberdade</span>
-            <div class="p-2 rounded-lg bg-pink-500/10 text-pink-400"><i data-lucide="target" class="w-4 h-4"></i></div>
+            <div class="p-2 rounded-lg bg-[rgba(236,72,153,0.10)] text-[#ec4899]"><i data-lucide="target" class="w-4 h-4"></i></div>
           </div>
-          <div class="metric-value text-2xl font-bold text-gray-900 tracking-tight" id="metric-freedom-progress">0,0%</div>
-          <div class="w-full bg-gray-200/80 rounded-full h-1.5 mt-3 overflow-hidden">
-            <div id="metric-freedom-bar" class="bg-gradient-to-r from-pink-500 to-rose-400 h-1.5 rounded-full" style="width: 0%"></div>
+          <div class="metric-value text-2xl font-bold text-[#191c1e] tracking-tight" id="metric-freedom-progress">0,0%</div>
+          <div class="w-full bg-[#e6e8ea] rounded-full h-1.5 mt-3 overflow-hidden">
+            <div id="metric-freedom-bar" class="bg-gradient-to-r from-[#ec4899] to-[#f59e0b] h-1.5 rounded-full" style="width: 0%"></div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Action Alert Box -->
-      <div id="daily-action-box" class="bg-white border border-emerald-500/20 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+      <!-- Quick Action Alert Box – glass per DESIGN.md -->
+      <div id="daily-action-box" class="glass-card rounded-[12px] p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div class="flex items-start gap-4">
           <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
             <i data-lucide="zap" class="w-5 h-5"></i>
@@ -384,54 +468,54 @@
             </p>
           </div>
         </div>
-        <button id="btn-quick-rebalance" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition shrink-0 active:scale-95">
+        <button id="btn-quick-rebalance" class="flex items-center gap-2 px-4 py-2 bg-[#00513f] hover:bg-[#006b55] text-white font-semibold text-xs rounded-lg shadow-[0_4px_20px_rgba(0,107,85,0.39)] transition shrink-0 active:scale-95">
           <i data-lucide="calculator" class="w-4 h-4"></i>
           <span>Simular Aporte</span>
         </button>
       </div>
 
-      <!-- Assets Table -->
-      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-4">
+      <!-- Assets Table – glass per DESIGN.md -->
+      <div class="glass-card rounded-[12px] p-6 space-y-4">
         <div class="flex flex-col gap-3">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 class="text-base font-semibold text-gray-900 tracking-tight">Ativos da Carteira</h2>
-              <p class="text-xs text-gray-500 mt-0.5">Cotações, preço médio, preço teto de Bazin e provento mensal (tempo real via StatusInvest/Investidor10)</p>
+              <h2 class="text-base font-semibold text-[#191c1e] tracking-tight">Ativos da Carteira</h2>
+              <p class="text-xs text-[#3e4945]/70 mt-0.5">Cotações, preço médio, preço teto de Bazin e provento mensal (tempo real via StatusInvest/Investidor10)</p>
             </div>
-            <button id="btn-refresh-dividends" title="Buscar dividendos e cotações em tempo real (StatusInvest / Investidor10 / Brapi)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 transition active:scale-95 shrink-0">
+            <button id="btn-refresh-dividends" title="Buscar dividendos e cotações em tempo real (StatusInvest / Investidor10 / Brapi)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#4648d4] hover:bg-[#6063ee] text-white text-xs font-semibold shadow-[0_4px_20px_rgba(70,72,212,0.25)] transition active:scale-95 shrink-0">
               <i data-lucide="refresh-cw" class="w-4 h-4"></i>
               <span>Atualizar dividendos</span>
               <span id="dividends-last-update" class="hidden sm:inline text-[10px] font-medium opacity-80"></span>
             </button>
           </div>
           <div class="flex flex-wrap items-center gap-1.5 pb-1 text-xs">
-            <button data-filter="ALL" class="asset-filter-btn active-filter flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"></i> Todos</button>
-            <button data-filter="ACAO" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="trending-up" class="w-3.5 h-3.5 shrink-0"></i> Ações</button>
-            <button data-filter="FII_TIJOLO" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="building-2" class="w-3.5 h-3.5 shrink-0"></i> FIIs Tijolo</button>
-            <button data-filter="FII_PAPEL" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i> FIIs Papel</button>
-            <button data-filter="STOCK_USD" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="globe" class="w-3.5 h-3.5 shrink-0"></i> Internacional</button>
-            <button data-filter="RENDA_FIXA" class="asset-filter-btn flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap"><i data-lucide="percent" class="w-3.5 h-3.5 shrink-0"></i> Renda Fixa</button>
+            <button data-filter="ALL" class="asset-filter-btn active-filter flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(0,81,63,0.08)] text-[#00513f] border border-[rgba(0,81,63,0.15)] text-xs font-semibold whitespace-nowrap"><i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"></i> Todos</button>
+            <button data-filter="ACAO" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="trending-up" class="w-3.5 h-3.5 shrink-0"></i> Ações</button>
+            <button data-filter="FII_TIJOLO" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="building-2" class="w-3.5 h-3.5 shrink-0"></i> FIIs Tijolo</button>
+            <button data-filter="FII_PAPEL" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i> FIIs Papel</button>
+            <button data-filter="STOCK_USD" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="globe" class="w-3.5 h-3.5 shrink-0"></i> Internacional</button>
+            <button data-filter="RENDA_FIXA" class="asset-filter-btn flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eceef0] hover:bg-[#e6e8ea] text-[#3e4945] border border-transparent text-xs font-semibold whitespace-nowrap"><i data-lucide="percent" class="w-3.5 h-3.5 shrink-0"></i> Renda Fixa</button>
           </div>
         </div>
 
         <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-left text-xs text-gray-600">
-            <thead class="bg-gray-100/60 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200">
+          <table class="w-full text-left text-xs text-[#3e4945] dashboard-table">
+            <thead class="bg-[rgba(236,238,240,0.7)] text-[#3e4945]/70 uppercase tracking-widest font-semibold border-b border-[rgba(190,201,195,0.4)] text-[12px]">
               <tr>
-                <th class="py-3 px-4">Ativo / Ticker</th>
-                <th class="py-3 px-4">Classe</th>
-                <th class="py-3 px-4 text-right">Qtd</th>
-                <th class="py-3 px-4 text-right">Preço Médio</th>
-                <th class="py-3 px-4 text-right">Cotação Atual</th>
-                <th class="py-3 px-4 text-right">Preço Teto (Bazin)</th>
-                <th class="py-3 px-4 text-right">Margem Segurança</th>
-                <th class="py-3 px-4 text-right">Yield on Cost</th>
-                <th class="py-3 px-4 text-right">Total (R$)</th>
-                <th class="py-3 px-4 text-right bg-indigo-500/5 min-w-[110px]">Div. mensal<br><span class="normal-case font-normal text-[10px] text-gray-500">R$ (qtd×cota)</span></th>
-                <th class="py-3 px-4 text-center min-w-[132px]">Ações</th>
+                <th class="py-3 px-4 font-semibold">Ativo / Ticker</th>
+                <th class="py-3 px-4 font-semibold">Classe</th>
+                <th class="py-3 px-4 text-right font-semibold">Qtd</th>
+                <th class="py-3 px-4 text-right font-semibold">Preço Médio</th>
+                <th class="py-3 px-4 text-right font-semibold">Cotação Atual</th>
+                <th class="py-3 px-4 text-right font-semibold">Preço Teto (Bazin)</th>
+                <th class="py-3 px-4 text-right font-semibold">Margem Segurança</th>
+                <th class="py-3 px-4 text-right font-semibold">Yield on Cost</th>
+                <th class="py-3 px-4 text-right font-semibold">Total (R$)</th>
+                <th class="py-3 px-4 text-right bg-[rgba(70,72,212,0.04)] min-w-[110px] font-semibold">Div. mensal<br><span class="normal-case font-normal text-[10px] text-[#3e4945]/70">R$ (qtd×cota)</span></th>
+                <th class="py-3 px-4 text-center min-w-[132px] font-semibold">Ações</th>
               </tr>
             </thead>
-            <tbody id="assets-table-body" class="divide-y divide-gray-200/60"></tbody>
+            <tbody id="assets-table-body" class="divide-y divide-[rgba(190,201,195,0.3)]"></tbody>
           </table>
         </div>
       </div>
