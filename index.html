@@ -338,8 +338,8 @@
     </div>
   </div>
 
-  <!-- Header – React spec: flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100 + sidebar offset -->
-  <header class="sticky top-0 z-50 lg:ml-[260px] flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100 gap-4 flex-wrap lg:flex-nowrap">
+  <!-- Header – React spec: flex items-center justify-between px-6 py-3 bg-white border-b border-gray-100 + sidebar offset -->
+  <header class="sticky top-0 z-50 lg:ml-[260px] flex items-center justify-between w-full lg:w-[calc(100%-260px)] px-6 py-3 bg-white border-b border-gray-100 gap-4 flex-wrap lg:flex-nowrap box-border">
       <!-- Lado Esquerdo — Campo de Busca (w-80 = 320px) -->
       <div class="flex items-center gap-3 shrink-0 flex-1 lg:flex-none min-w-0">
         <button id="btn-menu-toggle" title="Abrir menu" aria-label="Abrir menu" aria-expanded="false" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 border border-gray-200 transition shrink-0">
@@ -613,7 +613,7 @@
                 <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">YoC</th>
                 <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Total (R$)</th>
                 <th class="py-3 px-2 lg:px-4 text-right bg-[rgba(70,72,212,0.04)] font-semibold whitespace-nowrap">Div. mensal<br><span class="normal-case font-normal text-[10px] text-[#3e4945]/70">R$ (qtd×cota)</span></th>
-                <th class="py-3 px-2 lg:px-3 pr-3 text-center font-semibold whitespace-nowrap sticky right-0 bg-[rgba(236,238,240,0.95)] backdrop-blur-sm z-10 border-l border-[rgba(190,201,195,0.3)]">Ações</th>
+                <th class="py-3 px-2 lg:px-3 pr-3 text-center font-semibold whitespace-nowrap sticky right-0 lg:static bg-[rgba(236,238,240,0.95)] lg:bg-[rgba(236,238,240,0.7)] backdrop-blur-sm lg:backdrop-blur-none z-10 lg:z-auto border-l lg:border-l-0 border-[rgba(190,201,195,0.3)]">Ações</th>
               </tr>
             </thead>
             <tbody id="assets-table-body" class="divide-y divide-[rgba(190,201,195,0.3)]"></tbody>
