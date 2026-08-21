@@ -309,8 +309,8 @@ function lockApp() {
 
 async function handleLogout() {
   if (!isSupabaseConfigured()) {
-    // Modo Local: não há conta para encerrar, permanece no app
-    alert('Você está no Modo Local (sem login). Nada para encerrar.');
+    // Modo Local: volta para o gate de login (sair do sistema)
+    lockApp();
     return;
   }
   try {
