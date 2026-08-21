@@ -73,6 +73,22 @@ function pulse(el) {
   el.classList.add('anim-pop');
 }
 
+/* ---------- Parsing helper: aceita 0,10 e 0.10 e 1.234,56 ---------- */
+function parseLocaleNumber(value, fallback = 0) {
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'number' && isFinite(value)) return value;
+  let s = String(value).trim().replace(/\s/g, '').replace(/R\$/gi, '');
+  if (s === '' || s === ',' || s === '.') return fallback;
+  // Formato brasileiro: 1.234,56 -> 1234.56 | 0,10 -> 0.10
+  if (s.includes(',') && s.includes('.')) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.includes(',')) {
+    s = s.replace(',', '.');
+  }
+  const n = Number(s);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
   initAuthGate();
@@ -865,7 +881,7 @@ tbody.appendChild(tr);
   staggerIn(tbody);
 
   const cashInput = document.getElementById('input-rebalance-amount');
-  runRebalanceOrders(cashInput ? Number(cashInput.value) || 1500 : 1500);
+  runRebalanceOrders(cashInput ? parseLocaleNumber(cashInput.value, 1500) : 1500);
 }
 
 function runRebalanceOrders(cash) {
@@ -1190,9 +1206,9 @@ function initRetirementSimulator() {
 }
 
 function updateRetirementSimulation() {
-  const targetIncome = Number(document.getElementById('sim-target-income')?.value) || 5000;
-  const contribution = Number(document.getElementById('sim-monthly-contribution')?.value) || 1500;
-  const yieldAnnual = (Number(document.getElementById('sim-expected-yield')?.value) || 8.5) / 100;
+  const targetIncome = parseLocaleNumber(document.getElementById('sim-target-income')?.value, 5000);
+  const contribution = parseLocaleNumber(document.getElementById('sim-monthly-contribution')?.value, 1500);
+  const yieldAnnual = (parseLocaleNumber(document.getElementById('sim-expected-yield')?.value, 8.5)) / 100;
 
   let currentCap = 0;
   portfolioState.assets.forEach(a => {
@@ -1290,7 +1306,7 @@ document.getElementById('btn-quick-rebalance')?.addEventListener('click', () => 
   });
 
   document.getElementById('btn-run-rebalance')?.addEventListener('click', () => {
-    const cash = Number(document.getElementById('input-rebalance-amount')?.value) || 1500;
+    const cash = parseLocaleNumber(document.getElementById('input-rebalance-amount')?.value, 1500);
     runRebalanceOrders(cash);
   });
 
@@ -1336,9 +1352,9 @@ function initFormAddAsset() {
     e.preventDefault();
     const ticker = document.getElementById('add-ticker').value.trim().toUpperCase();
     const type = document.getElementById('add-type').value;
-    const quantity = Number(document.getElementById('add-quantity').value) || 0;
-    const price = Number(document.getElementById('add-price').value) || 0;
-    const dpa = Number(document.getElementById('add-dpa').value) || 0;
+    const quantity = parseLocaleNumber(document.getElementById('add-quantity').value, 0);
+    const price = parseLocaleNumber(document.getElementById('add-price').value, 0);
+    const dpa = parseLocaleNumber(document.getElementById('add-dpa').value, 0);
 
     const existingIdx = portfolioState.assets.findIndex(a => a.ticker === ticker);
     if (existingIdx >= 0) {
@@ -1513,10 +1529,10 @@ function initFormEditAsset() {
     const ticker = document.getElementById('edit-ticker')?.value.trim().toUpperCase();
     const name = document.getElementById('edit-name')?.value.trim() || ticker;
     const type = document.getElementById('edit-type')?.value;
-    const quantity = Number(document.getElementById('edit-quantity')?.value) || 0;
-    const avgPrice = Number(document.getElementById('edit-average-price')?.value) || 0;
-    const curPrice = Number(document.getElementById('edit-current-price')?.value) || 0;
-    const dpa = Number(document.getElementById('edit-dpa')?.value) || 0;
+    const quantity = parseLocaleNumber(document.getElementById('edit-quantity')?.value, 0);
+    const avgPrice = parseLocaleNumber(document.getElementById('edit-average-price')?.value, 0);
+    const curPrice = parseLocaleNumber(document.getElementById('edit-current-price')?.value, 0);
+    const dpa = parseLocaleNumber(document.getElementById('edit-dpa')?.value, 0);
     if (!ticker) { alert('Informe o ticker'); return; }
     const idx = portfolioState.assets.findIndex(a => a.ticker === originalTicker);
     if (idx < 0) { alert('Ativo não encontrado'); return; }
@@ -2644,10 +2660,7 @@ function initTaxPage() {
 }
 
 function readTaxInputs() {
-  const num = (id) => {
-    const v = parseFloat(document.getElementById(id)?.value);
-    return isFinite(v) ? v : 0;
-  };
+  const num = (id) => parseLocaleNumber(document.getElementById(id)?.value, 0);
   return {
     yearMonth: document.getElementById('tax-month-input')?.value || new Date().toISOString().slice(0, 7),
     stockSales: [{ sellAmount: num('tax-stock-sold'), costAmount: 0, profit: num('tax-stock-profit') }],

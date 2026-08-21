@@ -246,8 +246,8 @@
   </header>
 
   <!-- Sidebar / Menu Lateral (fixo no desktop, drawer no mobile) -->
-  <div id="menu-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden hidden"></div>
-  <aside id="sidebar-menu" aria-label="Menu principal" class="fixed inset-y-0 left-0 w-64 z-40 bg-white border-r border-gray-200 p-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar transition-transform duration-300 -translate-x-full lg:translate-x-0">
+  <div id="menu-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] lg:hidden hidden"></div>
+  <aside id="sidebar-menu" aria-label="Menu principal" class="fixed inset-y-0 left-0 w-64 z-[60] bg-white border-r border-gray-200 p-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar transition-transform duration-300 -translate-x-full lg:translate-x-0">
     <div class="flex items-center justify-between mb-4 lg:hidden">
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -491,7 +491,7 @@
           </div>
           <div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200">
             <span class="text-xs text-gray-500 pl-2">Aporte:</span>
-            <input type="number" id="input-rebalance-amount" value="1500" class="w-28 bg-white border border-gray-300/80 rounded-lg px-2.5 py-1 text-sm mono font-medium text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="input-rebalance-amount" value="1500" class="w-28 bg-white border border-gray-300/80 rounded-lg px-2.5 py-1 text-sm mono font-medium text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
             <button id="btn-run-rebalance" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">Calcular</button>
           </div>
         </div>
@@ -737,15 +737,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-gray-200">
           <div>
             <label class="text-xs text-gray-500 block mb-1">Renda Passiva Desejada (R$/mês)</label>
-            <input type="number" id="sim-target-income" value="5000" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="sim-target-income" value="5000" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
           </div>
           <div>
             <label class="text-xs text-gray-500 block mb-1">Aporte Mensal (R$)</label>
-            <input type="number" id="sim-monthly-contribution" value="1500" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="sim-monthly-contribution" value="1500" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
           </div>
           <div>
             <label class="text-xs text-gray-500 block mb-1">Yield Anual Esperado (%)</label>
-            <input type="number" id="sim-expected-yield" value="8.5" step="0.1" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="sim-expected-yield" value="8,5" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
           </div>
         </div>
 
@@ -800,15 +800,15 @@
             <div class="space-y-3">
               <div>
                 <label class="text-xs text-gray-500 block mb-1">Total vendido no mês (R$)</label>
-                <input type="number" id="tax-stock-sold" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+                <input type="text" inputmode="decimal" id="tax-stock-sold" value="0" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
               </div>
               <div>
                 <label class="text-xs text-gray-500 block mb-1">Lucro realizado no mês (R$)</label>
-                <input type="number" id="tax-stock-profit" value="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+                <input type="text" inputmode="decimal" id="tax-stock-profit" value="0" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
               </div>
               <div>
                 <label class="text-xs text-gray-500 block mb-1">Prejuízo acumulado a abater (R$)</label>
-                <input type="number" id="tax-stock-loss" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+                <input type="text" inputmode="decimal" id="tax-stock-loss" value="0" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
               </div>
             </div>
           </div>
@@ -821,15 +821,15 @@
             <div class="space-y-3">
               <div>
                 <label class="text-xs text-gray-500 block mb-1">Total vendido no mês (R$)</label>
-                <input type="number" id="tax-fii-sold" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+                <input type="text" inputmode="decimal" id="tax-fii-sold" value="0" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
               </div>
               <div>
                 <label class="text-xs text-gray-500 block mb-1">Lucro realizado no mês (R$)</label>
-                <input type="number" id="tax-fii-profit" value="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+                <input type="text" inputmode="decimal" id="tax-fii-profit" value="0" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
               </div>
               <div>
                 <label class="text-xs text-gray-500 block mb-1">Prejuízo acumulado a abater (R$)</label>
-                <input type="number" id="tax-fii-loss" value="0" min="0" step="0.01" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+                <input type="text" inputmode="decimal" id="tax-fii-loss" value="0" inputmode="decimal" class="w-full bg-white border border-gray-300/80 rounded-lg p-2 text-sm mono font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
               </div>
             </div>
           </div>
@@ -1047,17 +1047,17 @@
           </div>
           <div>
             <label class="block text-gray-500 mb-1">Quantidade</label>
-            <input type="number" id="add-quantity" required min="1" step="any" value="100" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="add-quantity" required value="100" placeholder="100" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-gray-500 mb-1">Preço Unit. (R$)</label>
-            <input type="number" id="add-price" required step="0.01" value="25.00" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="add-price" required value="25,00" placeholder="25,00" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
           </div>
           <div>
             <label class="block text-gray-500 mb-1">DPA Anual (R$)</label>
-            <input type="number" id="add-dpa" step="0.01" value="2.20" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
+            <input type="text" inputmode="decimal" id="add-dpa" value="2,20" placeholder="0,10" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition">
           </div>
         </div>
         <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] mt-2">
@@ -1103,22 +1103,22 @@
           </div>
           <div>
             <label class="block text-gray-500 mb-1">Quantidade</label>
-            <input type="number" id="edit-quantity" required min="0" step="any" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+            <input type="text" inputmode="decimal" id="edit-quantity" required class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-gray-500 mb-1">Preço Médio (R$)</label>
-            <input type="number" id="edit-average-price" required step="0.01" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+            <input type="text" inputmode="decimal" id="edit-average-price" required class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
           </div>
           <div>
             <label class="block text-gray-500 mb-1">Cotação Atual (R$)</label>
-            <input type="number" id="edit-current-price" required step="0.01" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+            <input type="text" inputmode="decimal" id="edit-current-price" required class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
           </div>
         </div>
         <div>
           <label class="block text-gray-500 mb-1">DPA Anual (R$)</label>
-          <input type="number" id="edit-dpa" step="0.01" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+          <input type="text" inputmode="decimal" id="edit-dpa" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
         </div>
         <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition active:scale-[0.98] mt-2">
           Salvar Alterações
