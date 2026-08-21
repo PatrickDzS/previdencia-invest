@@ -365,9 +365,9 @@
         </span>
 
         <div class="relative" id="notif-wrapper">
-          <button id="btn-header-notifications" title="Notificações" aria-haspopup="dialog" aria-expanded="false" class="relative flex items-center justify-center w-9 h-9 rounded-lg bg-[rgba(70,72,212,0.05)] hover:bg-[rgba(70,72,212,0.08)] text-[#3e4945] border border-[rgba(70,72,212,0.15)] hover:border-[rgba(70,72,212,0.25)] transition">
-            <i data-lucide="bell" class="w-4 h-4 text-[#f59e0b]"></i>
-            <span id="badge-header-notif-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
+          <button id="btn-header-notifications" title="Notificações" aria-haspopup="dialog" aria-expanded="false" class="relative flex items-center justify-center p-2.5 rounded-full hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] transition">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span id="badge-header-notif-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
           </button>
           <div id="notif-popup" class="hidden absolute right-0 top-full mt-2 w-[380px] max-w-[92vw] glass-card rounded-[12px] shadow-xl z-50 overflow-hidden flex-col">
             <div class="p-4 border-b border-[rgba(190,201,195,0.3)] flex items-center justify-between">
@@ -574,8 +574,8 @@
         </button>
       </div>
 
-      <!-- Assets Table – glass per DESIGN.md – corte correto sem barra -->
-      <div class="glass-card rounded-[12px] p-6 space-y-4 overflow-hidden">
+      <!-- Assets Table – glass per DESIGN.md – corte correto sem barra – ampliado -->
+      <div class="glass-card rounded-[12px] p-7 lg:p-8 space-y-4 overflow-visible">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 class="text-base font-semibold text-[#191c1e] tracking-tight">Ativos da Carteira</h2>
@@ -588,8 +588,8 @@
           </button>
         </div>
 
-        <div class="overflow-x-auto scrollbar-hide rounded-[8px] border border-[rgba(190,201,195,0.2)]">
-          <table class="w-full text-left text-xs text-[#3e4945] dashboard-table">
+        <div class="overflow-x-auto scrollbar-hide rounded-[8px] border border-[rgba(190,201,195,0.2)] -mx-1 px-1">
+          <table class="w-full text-left text-xs text-[#3e4945] dashboard-table min-w-[980px]">
             <thead class="bg-[rgba(236,238,240,0.7)] text-[#3e4945]/70 uppercase tracking-widest font-semibold border-b border-[rgba(190,201,195,0.4)] text-[12px]">
               <tr>
                 <th class="py-3 px-4 font-semibold">Ativo / Ticker</th>
@@ -602,7 +602,7 @@
                 <th class="py-3 px-4 text-right font-semibold">Yield on Cost</th>
                 <th class="py-3 px-4 text-right font-semibold">Total (R$)</th>
                 <th class="py-3 px-4 text-right bg-[rgba(70,72,212,0.04)] min-w-[110px] font-semibold">Div. mensal<br><span class="normal-case font-normal text-[10px] text-[#3e4945]/70">R$ (qtd×cota)</span></th>
-                <th class="py-3 px-4 text-center min-w-[132px] font-semibold">Ações</th>
+                <th class="py-3 px-4 text-center min-w-[176px] font-semibold">Ações</th>
               </tr>
             </thead>
             <tbody id="assets-table-body" class="divide-y divide-[rgba(190,201,195,0.3)]"></tbody>
