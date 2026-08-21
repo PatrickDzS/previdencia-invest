@@ -585,8 +585,8 @@
         </button>
       </div>
 
-      <!-- Assets Table – glass per DESIGN.md – sem corte, com rolagem horizontal -->
-      <div class="glass-card rounded-[12px] p-7 lg:p-8 space-y-4 overflow-hidden">
+      <!-- Assets Table – sem barra interna, tabela responsiva sem arraste -->
+      <div class="glass-card rounded-[12px] p-4 sm:p-7 lg:p-8 space-y-4 overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 class="text-base font-semibold text-[#191c1e] tracking-tight">Ativos da Carteira</h2>
@@ -599,21 +599,21 @@
           </button>
         </div>
 
-        <div class="overflow-x-auto custom-scrollbar rounded-[8px] border border-[rgba(190,201,195,0.2)] overscroll-x-contain" style="scrollbar-width: thin;">
-          <table class="w-full text-left text-xs text-[#3e4945] dashboard-table min-w-[1080px]">
-            <thead class="bg-[rgba(236,238,240,0.7)] text-[#3e4945]/70 uppercase tracking-widest font-semibold border-b border-[rgba(190,201,195,0.4)] text-[12px]">
+        <div class="rounded-[8px] border border-[rgba(190,201,195,0.2)] overflow-hidden">
+          <table class="w-full text-left text-xs text-[#3e4945] dashboard-table table-auto">
+            <thead class="bg-[rgba(236,238,240,0.7)] text-[#3e4945]/70 uppercase tracking-widest font-semibold border-b border-[rgba(190,201,195,0.4)] text-[11px] lg:text-[12px]">
               <tr>
-                <th class="py-3 px-4 font-semibold">Ativo / Ticker</th>
-                <th class="py-3 px-4 font-semibold">Classe</th>
-                <th class="py-3 px-4 text-right font-semibold">Qtd</th>
-                <th class="py-3 px-4 text-right font-semibold">Preço Médio</th>
-                <th class="py-3 px-4 text-right font-semibold">Cotação Atual</th>
-                <th class="py-3 px-4 text-right font-semibold">Preço Teto (Bazin)</th>
-                <th class="py-3 px-4 text-right font-semibold">Margem Segurança</th>
-                <th class="py-3 px-4 text-right font-semibold">Yield on Cost</th>
-                <th class="py-3 px-4 text-right font-semibold">Total (R$)</th>
-                <th class="py-3 px-4 text-right bg-[rgba(70,72,212,0.04)] min-w-[110px] font-semibold">Div. mensal<br><span class="normal-case font-normal text-[10px] text-[#3e4945]/70">R$ (qtd×cota)</span></th>
-                <th class="py-3 px-4 text-center min-w-[210px] font-semibold">Ações</th>
+                <th class="py-2.5 px-2 lg:px-3 font-semibold whitespace-nowrap">Ativo / Ticker</th>
+                <th class="py-2.5 px-2 lg:px-3 font-semibold whitespace-nowrap">Classe</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Qtd</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Preço Médio</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Cotação</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Teto (Bazin)</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Margem</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">YoC</th>
+                <th class="py-2.5 px-2 lg:px-3 text-right font-semibold whitespace-nowrap">Total (R$)</th>
+                <th class="py-3 px-2 lg:px-4 text-right bg-[rgba(70,72,212,0.04)] font-semibold whitespace-nowrap">Div. mensal<br><span class="normal-case font-normal text-[10px] text-[#3e4945]/70">R$ (qtd×cota)</span></th>
+                <th class="py-3 px-2 lg:px-4 text-center font-semibold whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody id="assets-table-body" class="divide-y divide-[rgba(190,201,195,0.3)]"></tbody>
