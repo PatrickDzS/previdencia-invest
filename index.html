@@ -267,6 +267,37 @@
         <p class="text-center text-[10px] text-gray-600 mt-4">Seus dados ficam protegidos com autenticação segura</p>
       </div>
     </div>
+    <!-- Popup Instalar PWA – no início do cadastro (login-gate) per DESIGN.md -->
+    <div id="pwa-install-popup" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4">
+      <div id="pwa-install-popup-backdrop" class="absolute inset-0 bg-[#191c1e]/60 backdrop-blur-sm"></div>
+      <div class="relative w-full max-w-sm glass-card rounded-[16px] p-6 space-y-4 shadow-xl anim-pop">
+        <button id="btn-install-popup-close" class="absolute top-3 right-3 p-1.5 rounded-lg text-[#3e4945] hover:text-[#191c1e] hover:bg-[rgba(0,81,63,0.08)] transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00513f] to-[#006b55] flex items-center justify-center shadow-[0_4px_20px_rgba(0,107,85,0.39)]">
+          <i data-lucide="download" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h3 class="text-[18px] font-bold text-[#191c1e] tracking-[-0.01em]">Instale o Previdência Invest</h3>
+          <p class="text-[14px] text-[#3e4945] leading-6 mt-1">Tenha sua carteira, dividendos e radar do pregão na tela inicial. Funciona offline e carrega em segundos.</p>
+        </div>
+        <ul class="space-y-2 text-[12px] text-[#3e4945]">
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#00513f]"></i> Acesso em 1 toque, sem digitar endereço</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#00513f]"></i> Notificações e atualização diária de preços</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#00513f]"></i> Funciona offline com seus dados salvos</li>
+        </ul>
+        <div class="flex flex-col gap-2 pt-2">
+          <button id="btn-install-popup" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#00513f] hover:bg-[#006b55] hover:scale-[1.02] text-white text-[14px] font-semibold tracking-[0.01em] shadow-[0_4px_20px_rgba(0,107,85,0.39)] transition active:scale-95">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Instalar agora</span>
+          </button>
+          <button id="btn-install-popup-later" class="w-full px-4 py-2.5 rounded-lg bg-[rgba(70,72,212,0.05)] hover:bg-[rgba(70,72,212,0.08)] text-[#3e4945] border border-[rgba(70,72,212,0.15)] text-[14px] font-medium tracking-[0.01em] transition">
+            Continuar no navegador
+          </button>
+        </div>
+        <p class="text-[11px] text-[#3e4945]/70 text-center">Você poderá instalar depois pelo rodapé do site.</p>
+      </div>
+    </div>
   </div>
 
   <!-- Header – TopAppBar per DESIGN.md: 64px, blur 20px 80%, shadow soft, 260px offset -->
@@ -303,11 +334,6 @@
           <i data-lucide="bell" class="w-4 h-4 text-[#f59e0b]"></i>
           <span class="hidden sm:inline">Alertas</span>
           <span id="badge-header-notif-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
-        </button>
-
-        <button id="btn-install-app" title="Instalar aplicativo" class="hidden items-center gap-1.5 px-3 py-2 rounded-lg bg-[rgba(70,72,212,0.05)] hover:bg-[rgba(70,72,212,0.08)] text-[#4648d4] border border-[rgba(70,72,212,0.15)] transition text-[14px] font-medium tracking-[0.01em]">
-          <i data-lucide="download" class="w-4 h-4"></i>
-          <span>Instalar</span>
         </button>
         
         <button id="btn-open-importer" title="Importar Extrato B3 ou Planilha CSV" class="hidden min-[420px]:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[rgba(70,72,212,0.05)] hover:bg-[rgba(70,72,212,0.08)] text-[#3e4945] border border-[rgba(70,72,212,0.15)] transition text-[14px] font-medium tracking-[0.01em]">
@@ -1109,6 +1135,28 @@
     </section>
     </div>
   </main>
+
+  <!-- Rodapé do site – Instalar fica aqui após o popup inicial -->
+  <footer id="site-footer" class="lg:ml-[260px] border-t border-[rgba(190,201,195,0.4)] bg-[rgba(247,249,251,0.8)] backdrop-blur-[20px] mt-auto">
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3 text-[12px] text-[#3e4945]">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00513f] to-[#006b55] flex items-center justify-center shadow-[0_2px_8px_rgba(0,107,85,0.25)]">
+          <i data-lucide="trending-up" class="w-4 h-4 text-white"></i>
+        </div>
+        <div>
+          <div class="font-semibold text-[#191c1e] text-[14px] tracking-[-0.01em]">Previdência Invest</div>
+          <div class="text-[12px] leading-none">v1 · Funciona offline · Gestão inteligente</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="hidden sm:inline text-[12px] text-[#3e4945]/70">Leve sua carteira para a tela inicial:</span>
+        <button id="btn-install-app" title="Instalar aplicativo" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00513f] hover:bg-[#006b55] hover:scale-[1.02] text-white text-[14px] font-medium tracking-[0.01em] shadow-[0_4px_20px_rgba(0,107,85,0.39)] transition active:scale-95">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Instalar app</span>
+        </button>
+      </div>
+    </div>
+  </footer>
 
   <!-- Modal: Adicionar Ativo -->
   <div id="modal-add-asset" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
