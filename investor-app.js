@@ -462,24 +462,49 @@ function loadStoredPortfolio() {
     const saved = localStorage.getItem('previdencia_invest_portfolio');
     if (saved) {
       portfolioState = JSON.parse(saved);
-      // Migração: FIIs antigos salvos com DPA 0,10 anual (na verdade mensal) → corrige para 0,10 mensal = 1,20 anual
       if (portfolioState.assets && Array.isArray(portfolioState.assets)) {
-        let migrated = false;
+        let needsSave = false;
+        // 1) Migração legado: executa APENAS UMA VEZ (flag _migratedDividendsV2)
+        // Antes o teste `annual < 1.5` fazia o valor correto 1,20 ser re-migrado para 14,40 a cada reload.
+        if (!portfolioState._migratedDividendsV2) {
+          portfolioState.assets.forEach(a => {
+            const isFII = a.type === 'FII_TIJOLO' || a.type === 'FII_PAPEL';
+            if (isFII && a.historicalAverageDPA > 0) {
+              const monthly = Number(a.monthlyDividendEstimate) || 0;
+              const annual = Number(a.historicalAverageDPA) || 0;
+              // Legado real: MXRF salvo como annual=0,10 monthly=0,0083 (monthly≈annual/12 e monthly<0,04 e annual<1,0)
+              // Correto 0,10/1,20 tem monthly=0,10 (>0,04) então NÃO entra.
+              const isLegacy = monthly > 0 && annual > 0 && annual < 1.0 && monthly < 0.04 && Math.abs(monthly - annual/12) < 0.001;
+              if (isLegacy) {
+                a.monthlyDividendEstimate = Number(annual.toFixed(4));
+                a.historicalAverageDPA = Number((annual * 12).toFixed(4));
+              }
+            }
+          });
+          portfolioState._migratedDividendsV2 = true;
+          needsSave = true;
+        }
+        // 2) Reparo de dados já corrompidos por migrações repetidas (ex: 1,20 → 14,40 → 172,80)
+        // Se annual > 8 e monthly*12 ≈ annual, é claramente bug de multiplicação repetida.
         portfolioState.assets.forEach(a => {
           const isFII = a.type === 'FII_TIJOLO' || a.type === 'FII_PAPEL';
-          if (isFII && a.historicalAverageDPA > 0) {
-            const monthly = a.monthlyDividendEstimate || 0;
-            const annual = a.historicalAverageDPA || 0;
-            // legado: mensal = anual/12 e anual < 1 (ex: 0,10 → 0,0083)
-            const isLegacy = Math.abs(monthly - annual/12) < 0.001 && annual > 0 && annual < 1.5;
-            if (isLegacy) {
-              a.monthlyDividendEstimate = annual;
-              a.historicalAverageDPA = annual * 12;
-              migrated = true;
+          if (!isFII) return;
+          let annual = Number(a.historicalAverageDPA) || 0;
+          let monthly = Number(a.monthlyDividendEstimate) || 0;
+          if (annual > 8 && monthly > 0.5 && Math.abs(monthly * 12 - annual) < 0.02) {
+            // divide por 12 até voltar a faixa plausível (<8)
+            while (annual > 8 && Math.abs(monthly * 12 - annual) < 0.02) {
+              annual = Number((annual / 12).toFixed(4));
+              monthly = Number((monthly / 12).toFixed(4));
+            }
+            if (annual !== a.historicalAverageDPA) {
+              a.historicalAverageDPA = annual;
+              a.monthlyDividendEstimate = monthly;
+              needsSave = true;
             }
           }
         });
-        if (migrated) {
+        if (needsSave) {
           try { localStorage.setItem('previdencia_invest_portfolio', JSON.stringify(portfolioState)); } catch(e){}
         }
       }
@@ -531,8 +556,17 @@ async function handleRefreshDividends(btn) {
 
 function initDividendsRefresh() {
   document.getElementById('btn-refresh-dividends')?.addEventListener('click', (e)=> handleRefreshDividends(e.currentTarget));
-  // NUNCA atualiza automaticamente ao carregar a página – preserva 100% dos valores manuais da carteira.
-  // Qualquer atualização de preço/dividendo ao vivo só ocorre quando o usuário clica em "Atualizar dividendos".
+  // Atualização automática: SOMENTE preço de mercado do dia (cotação).
+  // Dividendos (monthlyDividendEstimate / historicalAverageDPA) NUNCA são alterados no reload – só no clique manual.
+  if ((portfolioState.assets||[]).length > 0 && typeof enrichPortfolioWithLiveDividends === 'function') {
+    setTimeout(async ()=>{
+      try {
+        const res = await enrichPortfolioWithLiveDividends(portfolioState, { forceDividends: false });
+        // res.updated aqui conta apenas mudanças de preço (dividendos preservados quando force=false)
+        if (res.updated > 0) { savePortfolioToStorage(); renderAllViews(); initRaioXSelector(); }
+      } catch(e){ /* silencioso – mantém preço manual se API falhar */ }
+    }, 1200);
+  }
 }
 
 /* ============================================================
