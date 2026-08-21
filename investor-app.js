@@ -1479,28 +1479,20 @@ document.getElementById('btn-quick-rebalance')?.addEventListener('click', () => 
   });
 }
 
-function getDividendEstimates(dpaInput, assetType) {
-  const isFII = assetType === 'FII_TIJOLO' || assetType === 'FII_PAPEL';
-  if (isFII) {
-    // Para FIIs o usuário informa o dividendo mensal (ex: 0,10). Convertemos para anual.
-    return { annual: dpaInput * 12, monthly: dpaInput };
-  }
-  return { annual: dpaInput, monthly: dpaInput / 12 };
+function getDividendEstimates(dpaInput) {
+  // Novo Aporte agora pede Dividendo Mensal por cota (ex: MXRF 0,10 → 0,30 para 3 cotas)
+  // Independente do tipo, convertemos mensal → anual para manter compatibilidade
+  return { annual: dpaInput * 12, monthly: dpaInput };
 }
 function initFormAddAsset() {
   const form = document.getElementById('form-add-asset');
   if (!form) return;
-  // Atualiza placeholder/label do DPA conforme o tipo (anual vs mensal)
+  // Novo Aporte pede Dividendo Mensal (ajuste solicitado) – label fixo
   const dpaInput = document.getElementById('add-dpa');
   const dpaLabel = dpaInput ? dpaInput.closest('div')?.querySelector('label') : null;
-  const updateDpaHint = () => {
-    const t = document.getElementById('add-type')?.value;
-    const isFII = t === 'FII_TIJOLO' || t === 'FII_PAPEL';
-    if (dpaLabel) dpaLabel.innerText = isFII ? 'Dividendo Mensal (R$)' : 'DPA Anual (R$)';
-    if (dpaInput) dpaInput.placeholder = isFII ? '0,10' : '2,20';
-  };
-  document.getElementById('add-type')?.addEventListener('change', updateDpaHint);
-  updateDpaHint();
+  if (dpaLabel) dpaLabel.innerText = 'Dividendo Mensal (R$) por cota';
+  if (dpaInput) { dpaInput.placeholder = '0,10'; dpaInput.value = ''; }
+  // mantém compatibilidade se tipo mudar (não altera label)
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const ticker = document.getElementById('add-ticker').value.trim().toUpperCase();
@@ -1518,12 +1510,12 @@ function initFormAddAsset() {
       existing.quantity = newQty;
       existing.currentPrice = price;
       if (dpa > 0) {
-        const est = getDividendEstimates(dpa, existing.type || type);
+        const est = getDividendEstimates(dpa);
         existing.historicalAverageDPA = est.annual;
         existing.monthlyDividendEstimate = est.monthly;
       }
     } else {
-      const est = getDividendEstimates(dpa, type);
+      const est = getDividendEstimates(dpa);
       portfolioState.assets.push({
         id: 'ast-' + Date.now(),
         ticker,
@@ -1655,13 +1647,12 @@ function openEditAsset(ticker) {
   setVal('edit-quantity', asset.quantity);
   setVal('edit-average-price', asset.averagePrice);
   setVal('edit-current-price', asset.currentPrice);
-  const isFII = asset.type === 'FII_TIJOLO' || asset.type === 'FII_PAPEL';
-  const dpaForField = isFII ? (asset.monthlyDividendEstimate || (asset.historicalAverageDPA || 0) / 12) : (asset.historicalAverageDPA || 0);
+  const dpaForField = asset.monthlyDividendEstimate || (asset.historicalAverageDPA || 0) / 12;
   setVal('edit-dpa', Number(dpaForField).toFixed(2).replace('.', ','));
-  // atualiza label do modal de edição conforme tipo
+  // label fixo: Dividendo Mensal (solicitação do usuário) – por cota
   const editDpaLabel = document.getElementById('edit-dpa')?.closest('div')?.querySelector('label');
-  if (editDpaLabel) editDpaLabel.innerText = isFII ? 'Dividendo Mensal (R$)' : 'DPA Anual (R$)';
-  document.getElementById('edit-dpa')?.setAttribute('placeholder', isFII ? '0,10' : '2,20');
+  if (editDpaLabel) editDpaLabel.innerText = 'Dividendo Mensal (R$) por cota';
+  document.getElementById('edit-dpa')?.setAttribute('placeholder', '0,10');
   document.getElementById('modal-edit-asset')?.classList.remove('hidden');
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
 }
@@ -1684,12 +1675,11 @@ function initFormEditAsset() {
       }
     });
   }
-  // rótulo dinâmico do DPA no modal de edição (FII = mensal, Ação = anual)
-  document.getElementById('edit-type')?.addEventListener('change', (e) => {
-    const isFII = e.target.value === 'FII_TIJOLO' || e.target.value === 'FII_PAPEL';
+  // label fixo mensal (não alterna mais)
+  document.getElementById('edit-type')?.addEventListener('change', () => {
     const label = document.getElementById('edit-dpa')?.closest('div')?.querySelector('label');
-    if (label) label.innerText = isFII ? 'Dividendo Mensal (R$)' : 'DPA Anual (R$)';
-    document.getElementById('edit-dpa')?.setAttribute('placeholder', isFII ? '0,10' : '2,20');
+    if (label) label.innerText = 'Dividendo Mensal (R$) por cota';
+    document.getElementById('edit-dpa')?.setAttribute('placeholder', '0,10');
   });
   const form = document.getElementById('form-edit-asset');
   if (!form || form.dataset.bound === '1') return;
@@ -1719,7 +1709,7 @@ function initFormEditAsset() {
     asset.quantity = quantity;
     asset.averagePrice = avgPrice;
     asset.currentPrice = curPrice;
-    const estEdit = getDividendEstimates(dpa, type);
+    const estEdit = getDividendEstimates(dpa);
     asset.historicalAverageDPA = estEdit.annual;
     asset.monthlyDividendEstimate = estEdit.monthly;
     if (asset.deepDive) {
