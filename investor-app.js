@@ -155,6 +155,25 @@ function setGateVisible(visible) {
   });
 }
 
+let _splashHidden = false;
+let _splashStart = Date.now();
+function hideRefreshSplash() {
+  if (_splashHidden) return;
+  const splash = document.getElementById('refresh-splash');
+  if (!splash) { _splashHidden = true; return; }
+  const elapsed = Date.now() - _splashStart;
+  const minShow = 650;
+  const delay = elapsed < minShow ? (minShow - elapsed) : 0;
+  setTimeout(() => {
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.classList.add('hidden');
+      splash.setAttribute('aria-hidden', 'true');
+      _splashHidden = true;
+    }, 300);
+  }, delay);
+}
+
 function showAuthMessage(type, text) {
   const el = document.getElementById('auth-message');
   if (!el) return;
@@ -247,10 +266,11 @@ function populateProfileUser(user) {
 }
 
 function unlockApp(user, isLocal = false) {
-  if (authGateUnlocked) { if (user) populateProfileUser(user); return; }
+  if (authGateUnlocked) { if (user) populateProfileUser(user); hideRefreshSplash(); return; }
   authGateUnlocked = true;
   if (user) populateProfileUser(user);
   setGateVisible(false);
+  hideRefreshSplash();
   bootstrapApp(user || null);
 }
 
@@ -447,14 +467,19 @@ function initAuthGate() {
     } catch (e) {
       console.warn('Falha ao restaurar sessão:', e);
     }
-    // Sem sessão válida -> mantém gate de login
+    // Sem sessão válida -> mantém gate de login, mas NUNCA mostra gate durante o refresh splash
     if (!authGateUnlocked) {
       if (window.location.hash) {
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }
       setGateVisible(true);
+      hideRefreshSplash();
+    } else {
+      hideRefreshSplash();
     }
   })();
+  // Fallback: garante que o splash nunca fique preso se a verificação travar
+  setTimeout(() => hideRefreshSplash(), 3000);
 }
 
 function loadStoredPortfolio() {
