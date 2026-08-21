@@ -1,6 +1,7 @@
 // Previdência Invest Application Logic
 let portfolioState = { id: null, name: 'Minha Carteira Previdenciária', targetAllocations: {}, assets: [] };
 let activeFilter = 'ALL';
+let activeNotifFilter = 'ALL';
 let retirementChart = null;
 let quickActionAnimated = false;
 let newsItems = [];
@@ -745,9 +746,25 @@ function initMenu() {
     if (e.key === 'Escape') closeMenu();
   });
 
+  // Relatório – menu sofisticado (toggle)
+  const relatorioToggle = document.getElementById('btn-relatorio-toggle');
+  const relatorioSubmenu = document.getElementById('relatorio-submenu');
+  const relatorioChevron = document.getElementById('icon-relatorio-chevron');
+  relatorioToggle?.addEventListener('click', () => {
+    const isHidden = relatorioSubmenu?.classList.contains('hidden');
+    if (!relatorioSubmenu) return;
+    relatorioSubmenu.classList.toggle('hidden', !isHidden);
+    relatorioToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    if (relatorioChevron) relatorioChevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+  });
+
   // Fecha o drawer no mobile ao selecionar qualquer aba
   document.querySelectorAll('#sidebar-menu .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => closeMenu());
+  });
+  // Mantém drawer aberto ao usar Relatório no mobile (não fecha)
+  document.querySelectorAll('#relatorio-submenu button').forEach(btn => {
+    btn.addEventListener('click', (e) => e.stopPropagation());
   });
 }
 
@@ -785,31 +802,32 @@ function handleHashChange() {
     activateTabByButton(btn, true);
     return;
   }
-  const headerNotifBtn = document.getElementById('btn-header-notifications');
-  if (tabId === 'tab-notificacoes' && headerNotifBtn) activateTabByButton(headerNotifBtn, true);
+  if (tabId === 'tab-notificacoes') {
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(c => c.classList.add('hidden'));
+    const el = document.getElementById('tab-notificacoes');
+    if (el) { el.classList.remove('hidden'); entrance(el, 'fade-in'); }
+    document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active-tab'));
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+    if (typeof generatePortfolioAlerts === 'function') {
+      const alerts = generatePortfolioAlerts(portfolioState, (typeof SHARE_CLASSES_DATA !== 'undefined') ? SHARE_CLASSES_DATA : []);
+      markAllNotifsRead(alerts);
+    }
+  }
 }
 
 function initNavigation() {
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
-  const headerNotifBtn = document.getElementById('btn-header-notifications');
 
   const activateTab = (btn, fromHash = false) => {
     const targetTab = btn.getAttribute('data-tab');
-    const isHeaderNotif = btn === headerNotifBtn;
 
     tabBtns.forEach(b => {
       b.classList.remove('active-tab');
     });
 
-    if (!isHeaderNotif) {
-      btn.classList.add('active-tab');
-    }
-
-    if (headerNotifBtn) {
-      headerNotifBtn.classList.toggle('ring-2', targetTab === 'tab-notificacoes');
-      headerNotifBtn.classList.toggle('ring-amber-400/60', targetTab === 'tab-notificacoes');
-    }
+    btn.classList.add('active-tab');
 
     tabContents.forEach(content => {
       content.classList.add('hidden');
@@ -846,7 +864,7 @@ function initNavigation() {
 
     if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
 
-    if (!fromHash && !isHeaderNotif && targetTab) {
+    if (!fromHash && targetTab) {
       const route = REVERSE_TAB_HASH_MAP[targetTab] || 'dashboard';
       if (window.location.hash !== `#/${route}`) {
         window.location.hash = `#/${route}`;
@@ -860,7 +878,162 @@ function initNavigation() {
 
   activateTabByButton = activateTab;
 
-  headerNotifBtn?.addEventListener('click', () => activateTab(headerNotifBtn));
+  // Header search – filtra ativos na Dashboard e sincroniza com tabela
+  const headerSearch = document.getElementById('header-search');
+  if (headerSearch) {
+    headerSearch.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      const tbody = document.getElementById('assets-table-body');
+      if (!tbody) return;
+      // Se vazio, mostra conforme filtro atual
+      if (!q) { renderAssetsTable(); return; }
+      const filtered = portfolioState.assets.filter(a => {
+        const matchTxt = `${a.ticker} ${a.name} ${a.type}`.toLowerCase();
+        const matchFilter = activeFilter === 'ALL' || a.type === activeFilter;
+        return matchFilter && matchTxt.includes(q);
+      });
+      // Renderização leve filtrada por busca (reusa lógica de renderAssetsTable mas com subset)
+      tbody.innerHTML = '';
+      filtered.forEach(asset => {
+        const exchange = (asset.currency === 'USD' ? (asset.deepDive?.exchangeRateBRLUSD || 5.65) : 1);
+        const curPriceBRL = asset.currentPrice * exchange;
+        const avgPriceBRL = asset.averagePrice * exchange;
+        const totalValBRL = curPriceBRL * asset.quantity;
+        const bazin = calculateBazinCeilingPrice(asset.historicalAverageDPA, asset.targetAnnualYield || 0.06);
+        const margin = calculateMarginOfSafety(bazin, asset.currentPrice);
+        const yoc = calculateYieldOnCost(asset.historicalAverageDPA, asset.averagePrice);
+        const monthlyPerShareBRL = (asset.monthlyDividendEstimate != null && asset.monthlyDividendEstimate !== 0) ? (Number(asset.monthlyDividendEstimate) || 0) * exchange : ((Number(asset.historicalAverageDPA) || 0) * exchange / 12);
+        const monthlyTotalBRL = monthlyPerShareBRL * (Number(asset.quantity) || 0);
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[rgba(236,238,240,0.5)] transition font-medium group';
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', (ev) => { if (ev.target.closest('button')) return; openEditAsset(asset.ticker); });
+        tr.innerHTML = `
+          <td class="py-3 px-4"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-[#eceef0] flex items-center justify-center font-bold text-[#00513f] text-[11px] shrink-0 border border-[rgba(190,201,195,0.3)]">${asset.ticker.slice(0, 3)}</div><div class="min-w-0"><div class="font-bold text-[#191c1e] text-xs">${asset.ticker}</div><div class="text-[11px] text-[#3e4945]/70 truncate max-w-[130px]">${asset.name}</div></div></div></td>
+          <td class="py-3 px-4"><span class="chip-pill inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getTypeBadgeClass(asset.type)}"><i data-lucide="${getTypeIcon(asset.type)}" class="shrink-0" style="width:12px;height:12px"></i> ${formatTypeLabel(asset.type)}</span></td>
+          <td class="py-3 px-4 text-right text-[#3e4945] font-bold">${asset.quantity}</td>
+          <td class="py-3 px-4 text-right text-[#3e4945]/70">R$ ${avgPriceBRL.toFixed(2)}</td>
+          <td class="py-3 px-4 text-right font-bold ${curPriceBRL >= avgPriceBRL ? 'text-[#00513f]' : 'text-[#ba1a1a]'}">R$ ${curPriceBRL.toFixed(2)}</td>
+          <td class="py-3 px-4 text-right text-[#f59e0b] font-bold">R$ ${(bazin * exchange).toFixed(2)}</td>
+          <td class="py-3 px-4 text-right font-bold ${margin >= 0 ? 'text-[#00513f]' : 'text-[#ba1a1a]'}">${margin >= 0 ? '+' : ''}${margin.toFixed(1)}%</td>
+          <td class="py-3 px-4 text-right text-[#4648d4] font-bold">${yoc.toFixed(1)}%</td>
+          <td class="py-3 px-4 text-right font-bold text-[#191c1e]">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3 px-4 text-right bg-[rgba(70,72,212,0.04)] whitespace-nowrap"><div class="font-bold text-[#4648d4] whitespace-nowrap">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="text-[10px] text-[#3e4945]/70 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div></td>
+          <td class="py-3 px-2 text-center row-actions"><div class="flex items-center justify-center gap-1 flex-nowrap"><button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[rgba(6,182,212,0.08)] hover:bg-[rgba(6,182,212,0.12)] text-[#0891b2] border border-[rgba(6,182,212,0.15)] transition-colors duration-150 active:scale-95 shrink-0 lg:w-auto lg:h-auto lg:px-2.5 lg:py-1 lg:gap-1"><i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span></button><button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#00513f] hover:bg-[#006b55] text-white shadow-sm border border-[#00513f] transition-all duration-150 active:scale-95 shrink-0"><i data-lucide="pencil" class="shrink-0" style="width:11px;height:11px"></i> <span>Editar</span></button><button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white hover:bg-[#ffdad6] text-[#3e4945] hover:text-[#ba1a1a] border border-[rgba(190,201,195,0.4)] hover:border-[#ba1a1a]/20 transition-colors duration-150 active:scale-95 shrink-0"><i data-lucide="trash-2" class="shrink-0" style="width:12px;height:12px"></i></button></div></td>`;
+        tbody.appendChild(tr);
+      });
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="py-8 text-center text-[#3e4945]/70 text-xs">Nenhum ativo encontrado para "'+ q +'"</td></tr>';
+      }
+      if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+      staggerIn(tbody);
+    });
+    headerSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.target.value=''; renderAssetsTable(); }
+    });
+  }
+
+  // Notificações – popup apenas ícone (DESIGN.md: pill, 8px, secondary tint)
+  const notifBtn = document.getElementById('btn-header-notifications');
+  const notifPopup = document.getElementById('notif-popup');
+  const notifPopupList = document.getElementById('notif-popup-list');
+  const notifPopupClose = document.getElementById('btn-notif-popup-close');
+  const notifViewAll = document.getElementById('btn-notif-view-all');
+  const notifWrapper = document.getElementById('notif-wrapper');
+
+  function renderNotifPopup() {
+    if (!notifPopupList || typeof generatePortfolioAlerts !== 'function') return;
+    const classesData = (typeof SHARE_CLASSES_DATA !== 'undefined') ? SHARE_CLASSES_DATA : [];
+    const allAlerts = generatePortfolioAlerts(portfolioState, classesData);
+    const filtered = allAlerts.filter(a => activeNotifFilter === 'ALL' || a.category === activeNotifFilter);
+    notifPopupList.innerHTML = '';
+    if (filtered.length === 0) {
+      notifPopupList.innerHTML = '<div class="p-6 text-center text-[12px] text-[#3e4945]/70">Nenhuma notificação nesta categoria.</div>';
+      return;
+    }
+    filtered.slice(0, 6).forEach(alert => {
+      const isUnread = !notifReadSet.has(alert.id);
+      let badge = '';
+      let border = 'border-[rgba(190,201,195,0.3)] bg-white';
+      if (alert.category === 'RISK') badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[rgba(186,26,26,0.08)] text-[#ba1a1a] border border-[rgba(186,26,26,0.15)]">RISCO</span>';
+      else if (alert.category === 'OPPORTUNITY') badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[rgba(0,81,63,0.08)] text-[#00513f] border border-[rgba(0,81,63,0.15)]">OPORTUNIDADE</span>';
+      else if (alert.category === 'DIVIDEND') badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[rgba(70,72,212,0.08)] text-[#4648d4] border border-[rgba(70,72,212,0.15)]">PROVENTO</span>';
+      if (alert.category === 'RISK') border = 'border-[rgba(186,26,26,0.15)] bg-[rgba(186,26,26,0.04)]';
+      else if (alert.category === 'OPPORTUNITY') border = 'border-[rgba(0,81,63,0.15)] bg-[rgba(0,81,63,0.04)]';
+      const card = document.createElement('div');
+      card.className = `p-3 rounded-lg border ${border} space-y-2 cursor-pointer hover:shadow-md transition ${isUnread ? '' : 'opacity-70'}`;
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2"><span class="text-[11px] font-bold text-[#191c1e]">${alert.ticker}</span> ${badge} ${isUnread ? '<span class="w-1.5 h-1.5 rounded-full bg-[#00513f] inline-block"></span>' : ''}</div>
+          <span class="text-[10px] text-[#3e4945]/60">${alert.category}</span>
+        </div>
+        <div class="text-[12px] font-semibold text-[#191c1e] leading-tight">${alert.title}</div>
+        <div class="text-[11px] text-[#3e4945] leading-relaxed line-clamp-2">${alert.message}</div>
+      `;
+      card.addEventListener('click', () => {
+        markNotifRead(alert.id);
+        updateNotifBadge(allAlerts);
+        renderNotifPopup();
+        renderNotificationCenter();
+        // opcional: abrir ativo
+        if (alert.ticker) openEditAsset(alert.ticker);
+        closeNotifPopup();
+      });
+      notifPopupList.appendChild(card);
+    });
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+  }
+  function openNotifPopup() {
+    if (!notifPopup || !notifBtn) return;
+    renderNotifPopup();
+    notifPopup.classList.remove('hidden');
+    notifPopup.classList.add('flex');
+    notifPopup.classList.add('flex-col');
+    notifBtn.setAttribute('aria-expanded', 'true');
+    // marca como lido ao abrir
+    if (typeof generatePortfolioAlerts === 'function') {
+      const alerts = generatePortfolioAlerts(portfolioState, (typeof SHARE_CLASSES_DATA !== 'undefined') ? SHARE_CLASSES_DATA : []);
+      markAllNotifsRead(alerts);
+    }
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+  }
+  function closeNotifPopup() {
+    if (!notifPopup || !notifBtn) return;
+    notifPopup.classList.add('hidden');
+    notifPopup.classList.remove('flex');
+    notifBtn.setAttribute('aria-expanded', 'false');
+  }
+  notifBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (notifPopup.classList.contains('hidden')) openNotifPopup();
+    else closeNotifPopup();
+  });
+  notifPopupClose?.addEventListener('click', closeNotifPopup);
+  notifViewAll?.addEventListener('click', () => {
+    closeNotifPopup();
+    window.location.hash = '#/notificacoes';
+  });
+  document.addEventListener('click', (e) => {
+    if (!notifPopup || notifPopup.classList.contains('hidden')) return;
+    if (!notifWrapper.contains(e.target)) closeNotifPopup();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && notifPopup && !notifPopup.classList.contains('hidden')) closeNotifPopup();
+  });
+  // Filtros do popup (reusa activeNotifFilter global)
+  const popupFilters = document.querySelectorAll('#notif-popup [data-notif-filter]');
+  popupFilters.forEach(btn => {
+    btn.addEventListener('click', () => {
+      popupFilters.forEach(b => b.classList.remove('active-notif-filter','bg-[rgba(0,81,63,0.08)]','text-[#00513f]','border','border-[rgba(0,81,63,0.15)]'));
+      btn.classList.add('active-notif-filter');
+      // sincroniza com filtro global usado em renderNotificationCenter/popup
+      activeNotifFilter = btn.getAttribute('data-notif-filter');
+      document.querySelectorAll('.notif-filter-btn').forEach(b=> b.classList.remove('active-notif-filter'));
+      btn.classList.add('active-notif-filter');
+      renderNotifPopup();
+      renderNotificationCenter();
+    });
+  });
 
   const filterBtns = document.querySelectorAll('.asset-filter-btn');
   filterBtns.forEach(btn => {
@@ -2252,7 +2425,7 @@ initActionButtons = function() {
 };
 
 // 14. Renderização do Centro de Notificações e Auditoria de Saúde
-let activeNotifFilter = 'ALL';
+// activeNotifFilter already declared at top
 
 const NOTIF_READ_KEY = 'previdencia_invest_notifs_read';
 let notifReadSet = new Set();
