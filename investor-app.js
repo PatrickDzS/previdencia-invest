@@ -931,11 +931,11 @@ function renderRadarTable() {
 
     let diagnosticBadge = '';
     if (margin >= 15) {
-      diagnosticBadge = '<span class="anim-pulse-soft px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">COMPRA FORTE</span>';
+      diagnosticBadge = '<span class="anim-pulse-soft inline-flex items-center justify-center whitespace-nowrap leading-none px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold tracking-wide">COMPRA FORTE</span>';
     } else if (margin >= 0) {
-      diagnosticBadge = '<span class="px-2.5 py-1 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 text-[10px] font-bold">ZONA DE COMPRA</span>';
+      diagnosticBadge = '<span class="inline-flex items-center justify-center whitespace-nowrap leading-none px-3 py-1 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 text-[10px] font-bold tracking-wide">ZONA DE COMPRA</span>';
     } else {
-      diagnosticBadge = '<span class="px-2.5 py-1 rounded-full bg-gray-200 text-gray-500 text-[10px] font-bold">AGUARDAR</span>';
+      diagnosticBadge = '<span class="inline-flex items-center justify-center whitespace-nowrap leading-none px-3 py-1 rounded-full bg-gray-200 text-gray-500 border border-gray-300 text-[10px] font-bold tracking-wide">AGUARDAR</span>';
     }
 
     const tr = document.createElement('tr');
@@ -959,7 +959,7 @@ function renderRadarTable() {
           <span class="text-[11px] font-bold text-gray-600">${progress.toFixed(0)}%</span>
         </div>
       </td>
-      <td class="py-3 px-4 text-center">${diagnosticBadge}</td>
+      <td class="py-3 px-4 text-center whitespace-nowrap">${diagnosticBadge}</td>
     `;
 tbody.appendChild(tr);
   });
