@@ -893,19 +893,19 @@ function renderAssetsTable() {
       </td>
       <td class="py-3 px-4 text-right text-indigo-400 font-bold">${yoc.toFixed(1)}%</td>
       <td class="py-3 px-4 text-right font-bold text-gray-900">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      <td class="py-3 px-4 text-right bg-indigo-500/5" title="Provento mensal: ${asset.quantity}×R$ ${monthlyPerShareBRL.toFixed(2)} = R$ ${monthlyTotalBRL.toFixed(2)} — dados ao vivo via StatusInvest/Investidor10 (Brapi)">
-        <div class="font-bold text-indigo-600">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-        <div class="text-[10px] text-gray-500 font-normal">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div>
+      <td class="py-3 px-4 text-right bg-indigo-500/5 whitespace-nowrap" title="Provento mensal: ${asset.quantity}×R$ ${monthlyPerShareBRL.toFixed(2)} = R$ ${monthlyTotalBRL.toFixed(2)} — dados ao vivo via StatusInvest/Investidor10 (Brapi)">
+        <div class="font-bold text-indigo-600 whitespace-nowrap">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="text-[10px] text-gray-500 font-normal whitespace-nowrap">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div>
       </td>
-      <td class="py-3 px-4 text-center sticky right-0 bg-white/95 backdrop-blur shadow-[-4px_0_8px_rgba(0,0,0,0.04)]">
-        <div class="flex items-center justify-center gap-1.5">
-           <button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" title="Raio-X detalhado (composição e imóveis via Investidor10/StatusInvest)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/20 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 shrink-0">
-             <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> Raio-X
+      <td class="py-3 px-2 text-center">
+        <div class="flex items-center justify-center gap-1 flex-nowrap">
+           <button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" title="Raio-X detalhado (composição e imóveis via Investidor10/StatusInvest)" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/20 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 shrink-0 lg:w-auto lg:h-auto lg:px-2.5 lg:py-1 lg:gap-1">
+             <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> <span class="hidden lg:inline text-[11px] font-bold">Raio-X</span>
            </button>
-           <button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" title="Editar ativo (quantidade, preço, proventos)" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/20 border border-indigo-600 transition-all duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 shrink-0">
-             <i data-lucide="pencil" class="shrink-0" style="width:13px;height:13px"></i> Editar
+           <button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" title="Editar ativo (quantidade, preço, proventos) – clique na linha também edita" class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm border border-indigo-600 transition-all duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 shrink-0">
+             <i data-lucide="pencil" class="shrink-0" style="width:11px;height:11px"></i> <span>Editar</span>
            </button>
-           <button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Excluir ativo da carteira" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-white hover:bg-rose-50 text-gray-500 hover:text-rose-500 border border-gray-200 hover:border-rose-200 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/30 shrink-0">
+           <button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Excluir ativo da carteira" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white hover:bg-rose-50 text-gray-500 hover:text-rose-500 border border-gray-200 hover:border-rose-200 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/30 shrink-0">
              <i data-lucide="trash-2" class="shrink-0" style="width:12px;height:12px"></i>
            </button>
          </div>
