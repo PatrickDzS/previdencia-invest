@@ -512,7 +512,7 @@
   </aside>
 
   <!-- Main Content – per DESIGN.md: 260px sidebar + fluid -->
-  <main class="flex-1 lg:ml-[260px] relative overflow-x-hidden overflow-y-visible">
+  <main class="flex-1 lg:ml-[260px] relative overflow-x-visible overflow-y-visible">
     <div class="max-w-7xl mx-auto p-4 lg:p-8 space-y-6 relative overflow-visible">
 
     <!-- TAB 1: DASHBOARD -->
@@ -585,8 +585,8 @@
         </button>
       </div>
 
-      <!-- Assets Table – sem barra interna, tabela responsiva sem arraste -->
-      <div class="glass-card rounded-[12px] p-4 sm:p-7 lg:p-8 space-y-4 overflow-hidden">
+      <!-- Assets Table – sem barra, responsiva sem barra visível, lixeira sempre visível -->
+      <div class="glass-card rounded-[12px] p-4 sm:p-6 lg:p-6 space-y-4 overflow-visible">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 class="text-base font-semibold text-[#191c1e] tracking-tight">Ativos da Carteira</h2>
@@ -599,8 +599,8 @@
           </button>
         </div>
 
-        <div class="rounded-[8px] border border-[rgba(190,201,195,0.2)] overflow-hidden">
-          <table class="w-full text-left text-xs text-[#3e4945] dashboard-table table-auto">
+        <div class="rounded-[8px] border border-[rgba(190,201,195,0.2)] overflow-x-auto scrollbar-hide">
+          <table class="w-full min-w-[980px] text-left text-xs text-[#3e4945] dashboard-table table-auto">
             <thead class="bg-[rgba(236,238,240,0.7)] text-[#3e4945]/70 uppercase tracking-widest font-semibold border-b border-[rgba(190,201,195,0.4)] text-[11px] lg:text-[12px]">
               <tr>
                 <th class="py-2.5 px-2 lg:px-3 font-semibold whitespace-nowrap">Ativo / Ticker</th>
