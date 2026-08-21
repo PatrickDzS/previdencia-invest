@@ -506,7 +506,7 @@ async function handleRefreshDividends(btn) {
   if (targetBtn) targetBtn.innerHTML = '<span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Atualizando...';
   try {
     if (typeof enrichPortfolioWithLiveDividends !== 'function') throw new Error('Serviço de dividendos não carregado');
-    const res = await enrichPortfolioWithLiveDividends(portfolioState);
+    const res = await enrichPortfolioWithLiveDividends(portfolioState, { forceDividends: true });
     savePortfolioToStorage();
     renderAllViews();
     initRaioXSelector();
@@ -527,16 +527,14 @@ async function handleRefreshDividends(btn) {
 
 function initDividendsRefresh() {
   document.getElementById('btn-refresh-dividends')?.addEventListener('click', (e)=> handleRefreshDividends(e.currentTarget));
-  // Atualização automática silenciosa ao abrir o app (se houver ativos) – respeita cache de 15min
+  // NÃO faz atualização automática de dividendos no refresh – evita bagunçar valores manuais (ex: MXRF 0,10)
+  // Apenas atualiza cotações/preços em background sem sobrescrever dividendos (forceDividends:false)
   if ((portfolioState.assets||[]).length > 0 && typeof enrichPortfolioWithLiveDividends === 'function') {
-    // aguarda 1.2s para não bloquear render inicial
     setTimeout(async ()=>{
       try {
-        const res = await enrichPortfolioWithLiveDividends(portfolioState);
-        if (res.updated > 0) { savePortfolioToStorage(); renderAllViews(); initRaioXSelector();
-          const lastEl = document.getElementById('dividends-last-update');
-          if (lastEl) { lastEl.innerText = '· auto ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); lastEl.classList.remove('hidden'); }
-        }
+        const res = await enrichPortfolioWithLiveDividends(portfolioState, { forceDividends: false });
+        // só preço foi atualizado; dividendos manuais permanecem intactos
+        if (res.updated > 0) { savePortfolioToStorage(); renderAllViews(); initRaioXSelector(); }
       } catch(e){ /* silencioso */ }
     }, 1200);
   }
@@ -1102,13 +1100,17 @@ function renderRaioXDetail(ticker = null) {
   const container = document.getElementById('raiox-detail-content');
   if (!container || !deep) return;
 
-  // Enriquecimento ao vivo via StatusInvest/Investidor10 (Brapi) – se Raio-X for genérico
+  // Enriquecimento ao vivo via StatusInvest/Investidor10 (Brapi) – sempre busca se não há Raio-X ao vivo
   const isGenericRaiox = !deep.properties?.length && !deep.debtsPortfolio?.length && !deep.fixedIncomeDetails
     && (String(deep.description||'').includes('Ativo adicionado') || String(deep.description||'').includes('Ativo importado') || deep.companyName === deep.ticker);
-  if (isGenericRaiox && typeof fetchAssetInfos === 'function' && !asset._raioxFetching) {
+  const needsLive = (!deep.liveInfo || isGenericRaiox) && typeof fetchAssetInfos === 'function' && !asset._raioxFetching;
+  if (needsLive) {
     asset._raioxFetching = true;
-    // placeholder de carregamento
-    container.innerHTML = `<div class="flex items-center gap-2 text-xs text-cyan-600 bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-3"><span class="w-3.5 h-3.5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></span> Buscando Raio-X em tempo real em StatusInvest/Investidor10 e Brapi para ${asset.ticker}...</div>`;
+    // placeholder de carregamento (mantém card parcial visível)
+    const loadingHtml = `<div class="flex items-center gap-2 text-xs text-cyan-600 bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-3 mb-3"><span class="w-3.5 h-3.5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></span> Buscando Raio-X em tempo real em StatusInvest/Investidor10 e Brapi para ${asset.ticker}...<a href="https://investidor10.com.br/fiis/${asset.ticker.toLowerCase()}" target="_blank" class="ml-auto text-cyan-700 underline">abrir Investidor10</a></div>`;
+    // se ainda não tem conteúdo, mostra loading; se já tem card, prepend loading
+    if (!container.innerHTML.trim() || isGenericRaiox) container.innerHTML = loadingHtml;
+    else container.insertAdjacentHTML('afterbegin', loadingHtml);
     fetchAssetInfos([targetTicker]).then(infos=>{
       const info = infos[targetTicker];
       if (info) {
@@ -1151,8 +1153,17 @@ function renderRaioXDetail(ticker = null) {
         try { savePortfolioToStorage(); } catch(e){}
         renderAllViews();
         renderRaioXDetail(targetTicker);
+      } else {
+        // sem dados ao vivo – mantém card genérico mas mostra aviso com link direto para Investidor10/StatusInvest
+        container.insertAdjacentHTML('beforeend', `<div class="mt-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-gray-600 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i> Não foi possível carregar o Raio-X ao vivo para ${asset.ticker} (site pode estar bloqueando). <a href="https://investidor10.com.br/fiis/${asset.ticker.toLowerCase()}" target="_blank" class="text-indigo-600 underline font-bold">Abrir no Investidor10</a> <span class="mx-1">·</span> <a href="https://statusinvest.com.br/fiis/${asset.ticker.toLowerCase()}" target="_blank" class="text-indigo-600 underline font-bold">StatusInvest</a> <button onclick="delete portfolioState.assets.find(a=>a.ticker==='${asset.ticker}')._raioxFetching; renderRaioXDetail('${asset.ticker}')" class="ml-auto px-2 py-1 rounded bg-white border text-[11px]">Tentar novamente</button></div>`);
+        if (window.lucide) lucide.createIcons({icons: lucide.icons});
       }
-    }).catch(()=>{}).finally(()=>{ delete asset._raioxFetching; });
+    }).catch((err)=>{
+      console.warn('Raio-X ao vivo falhou', err);
+      const errHtml = `<div class="mt-3 p-3 rounded-xl bg-rose-500/5 border border-rose-500/20 text-xs text-rose-700 flex items-center gap-2"><i data-lucide="wifi-off" class="w-4 h-4"></i> Falha de conexão ao buscar Investidor10/StatusInvest para ${asset.ticker}. <a href="https://investidor10.com.br/fiis/${asset.ticker.toLowerCase()}" target="_blank" class="underline font-bold">Abrir Investidor10</a><button onclick="const a=portfolioState.assets.find(x=>x.ticker==='${asset.ticker}'); if(a) delete a._raioxFetching; renderRaioXDetail('${asset.ticker}')" class="ml-auto px-2 py-1 rounded bg-white border text-[11px]">Tentar novamente</button></div>`;
+      container.insertAdjacentHTML('beforeend', errHtml);
+      if (window.lucide) lucide.createIcons({icons: lucide.icons});
+    }).finally(()=>{ delete asset._raioxFetching; });
     // continua renderizando o genérico enquanto carrega (não retorna)
   }
 

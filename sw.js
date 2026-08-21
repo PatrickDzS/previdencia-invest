@@ -2,7 +2,7 @@
  * Estratégia: precache do app shell + CDNs, stale-while-revalidate para fontes,
  * network-first com fallback offline para navegações e APIs de cotações.
  */
-const VERSION = '1.5.0';
+const VERSION = '1.6.0';
 const CACHE_PREFIX = 'previdencia-invest-';
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 

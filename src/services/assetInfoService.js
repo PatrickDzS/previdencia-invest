@@ -49,6 +49,7 @@ async function fetchAssetInfos(tickers = []) {
 }
 
 async function enrichPortfolioWithLiveDividends(portfolioState, options={}) {
+  const forceDividends = !!options.forceDividends;
   const tickers = (portfolioState.assets||[]).map(a=>a.ticker);
   if (!tickers.length) return { updated: 0 };
   const infos = await fetchAssetInfos(tickers);
@@ -56,23 +57,32 @@ async function enrichPortfolioWithLiveDividends(portfolioState, options={}) {
   portfolioState.assets.forEach(asset=>{
     const info = infos[asset.ticker.toUpperCase()];
     if (!info) return;
-    // Preço
+    // Preço – sempre atualiza se vier >0 (não bagunça dividendos)
     if (info.price && isFinite(info.price) && info.price > 0) {
       asset.currentPrice = Number(info.price);
       updated++;
     }
-    // Dividendos: usa mensal fidedigno do scraping/Brapi
-    if (info.monthlyDividend != null && isFinite(info.monthlyDividend) && info.monthlyDividend >= 0) {
+    // Dividendos: NÃO sobrescreve automaticamente no refresh para não bagunçar valores manuais
+    // Só sobrescreve se for atualização manual (forceDividends) ou se o ativo ainda não tem dividendo
+    const hasUserMonthly = asset.monthlyDividendEstimate != null && Number(asset.monthlyDividendEstimate) > 0;
+    const shouldOverwrite = forceDividends || !hasUserMonthly;
+    if (!shouldOverwrite) {
+      // guarda live como referência sem sobrescrever o que o usuário digitou
+      asset.deepDive = asset.deepDive || {};
+      if (info.monthlyDividend != null && info.monthlyDividend > 0) asset.deepDive.liveMonthly = Number(info.monthlyDividend.toFixed(4));
+      if (info.annualDividend != null && info.annualDividend > 0) asset.deepDive.liveAnnual = Number(info.annualDividend.toFixed(4));
+      return;
+    }
+    if (info.monthlyDividend != null && isFinite(info.monthlyDividend) && info.monthlyDividend > 0) {
       const monthly = Number(info.monthlyDividend);
-      // diferencia FII (mensal) vs Ação (anual/12 já vem normalizado do backend)
       asset.monthlyDividendEstimate = Number(monthly.toFixed(4));
-      asset.historicalAverageDPA = Number((info.annualDividend != null ? info.annualDividend : monthly*12).toFixed(4));
-      if (monthly > 0) updated++;
-    } else if (info.annualDividend != null) {
+      asset.historicalAverageDPA = Number((info.annualDividend != null && info.annualDividend>0 ? info.annualDividend : monthly*12).toFixed(4));
+      updated++;
+    } else if (info.annualDividend != null && isFinite(info.annualDividend) && info.annualDividend > 0) {
       const annual = Number(info.annualDividend);
       asset.historicalAverageDPA = Number(annual.toFixed(4));
       asset.monthlyDividendEstimate = Number((annual/12).toFixed(4));
-      if (annual>0) updated++;
+      updated++;
     }
     // Enriquecimento Raio-X leve: guarda url fonte e composição
     if (info.raioxUrl) {

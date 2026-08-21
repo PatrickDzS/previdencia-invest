@@ -185,23 +185,42 @@ function parseStatusInvest(html, ticker) {
 }
 
 async function fetchStatusInvest(ticker) {
-  const cat = inferCategory(ticker);
-  const urls = [
-    `${STATUS_BASE}/${cat.statusPath}`,
-    `${INV10_BASE}/${cat.inv10Path}`
+  const t = cleanTicker(ticker);
+  const lower = t.toLowerCase();
+  // tenta todas as categorias (FII 11 pode ser ETF, BDR 34, etc) – evita erro de inferência
+  const tryPaths = [
+    `fiis/${lower}`, `acoes/${lower}`, `etfs/${lower}`, `bdrs/${lower}`, `bdr/${lower}`, `fundos/${lower}`
   ];
+  const urls = [];
+  // prioriza a categoria inferida primeiro
+  const cat = inferCategory(ticker);
+  urls.push(`${STATUS_BASE}/${cat.statusPath}`, `${INV10_BASE}/${cat.inv10Path}`);
+  for (const p of tryPaths) {
+    const sUrl = `${STATUS_BASE}/${p}`;
+    const iUrl = `${INV10_BASE}/${p}`;
+    if (!urls.includes(sUrl)) urls.push(sUrl);
+    if (!urls.includes(iUrl)) urls.push(iUrl);
+  }
   for (const url of urls) {
     try {
       const r = await fetchWithTimeout(url, 7000);
       if (!r.ok) continue;
-      const html = await r.text();
-      if (!html || html.length < 2000) continue;
-      const parsed = parseStatusInvest(html, ticker);
-      if (parsed && (parsed.dy != null || parsed.lastDividend != null)) {
-        return { source: url.includes('statusinvest') ? 'statusinvest' : 'investidor10', url, info: parsed };
+      // Cloudflare pode retornar 403 com página de desafio – detecta
+      const ct = r.headers.get('content-type') || '';
+      if (ct.includes('text/html')) {
+        const html = await r.text();
+        if (!html || html.length < 2000) continue;
+        // detecta página de bloqueio Cloudflare
+        if (/Just a moment|Checking if the site connection is secure|cf-chl/i.test(html)) continue;
+        const parsed = parseStatusInvest(html, ticker);
+        if (parsed && (parsed.dy != null || parsed.lastDividend != null || parsed.pvp != null || parsed.composition.length)) {
+          return { source: url.includes('statusinvest') ? 'statusinvest' : 'investidor10', url, info: parsed };
+        }
+        // mesmo sem dividendos, retorna se html é útil para Raio-X (tamanho > 5k e contém ticker)
+        if (html.length > 8000 && html.toLowerCase().includes(lower)) {
+          return { source: url.includes('statusinvest') ? 'statusinvest' : 'investidor10', url, info: parsed || { rawLength: html.length, segment: parsed?.segment || null } };
+        }
       }
-      // mesmo sem dividendos, retorna html útil para Raio-X (tamanho > 5k)
-      if (html.length > 8000) return { source: url.includes('statusinvest') ? 'statusinvest' : 'investidor10', url, info: parsed || { rawLength: html.length } };
     } catch (e) { /* tenta próximo */ }
   }
   return null;
