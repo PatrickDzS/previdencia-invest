@@ -495,6 +495,38 @@ async function loadMonthlyTaxFromCloud(yearMonth) {
   }
 }
 
+// 12. Excluir ativos da carteira na nuvem
+async function deleteAssetsFromCloud(tickers) {
+  const client = initSupabaseClient();
+  const user = await getLoggedUser();
+
+  if (!client || !user || !tickers || tickers.length === 0) {
+    return { synced: false };
+  }
+
+  try {
+    const { data: portData } = await client
+      .from('portfolios')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!portData?.id) return { synced: false };
+
+    const { error } = await client
+      .from('assets')
+      .delete()
+      .eq('portfolio_id', portData.id)
+      .in('ticker', tickers);
+
+    if (error) throw error;
+    return { synced: true };
+  } catch (err) {
+    console.warn("Erro ao excluir ativos da nuvem:", err);
+    return { synced: false };
+  }
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     getSupabaseConfig,
@@ -516,6 +548,7 @@ if (typeof module !== 'undefined') {
     loadNotificationsFromCloud,
     markNotificationRead,
     syncMonthlyTaxToCloud,
-    loadMonthlyTaxFromCloud
+    loadMonthlyTaxFromCloud,
+    deleteAssetsFromCloud
   };
 }

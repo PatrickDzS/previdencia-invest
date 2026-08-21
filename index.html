@@ -623,22 +623,31 @@
             </p>
           </div>
 
-          <!-- Ticker Select: carteira auto + tickers livres -->
+          <!-- Ticker Select: carteira auto + tickers livres (qualquer ativo da B3) -->
           <div class="space-y-2">
             <div class="flex flex-col sm:flex-row gap-2">
-              <input type="text" id="perf-ticker-input" placeholder="Adicionar ticker livre (ex: PETR4, MXRF11, AAPL)" class="flex-1 bg-white border border-gray-300/80 rounded-lg p-2 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition uppercase" maxlength="12">
+              <input type="text" id="perf-ticker-input" list="perf-ticker-datalist" placeholder="Adicionar ticker livre (ex: PETR4, MXRF11, VALE3, AAPL, KNRI11)" class="flex-1 bg-white border border-gray-300/80 rounded-lg p-2 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition uppercase" maxlength="12">
+              <datalist id="perf-ticker-datalist">
+                <option value="PETR4"><option value="VALE3"><option value="BBAS3"><option value="ITUB4"><option value="BBDC4"><option value="WEGE3"><option value="MGLU3"><option value="HGLG11"><option value="KNRI11"><option value="MXRF11"><option value="XPLG11"><option value="HGRE11"><option value="BCFF11"><option value="AAPL"><option value="MSFT"><option value="IVVB11"><option value="BOVA11"><option value="SMAL11">
+              </datalist>
               <button id="btn-perf-add-ticker" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition active:scale-95">Adicionar</button>
+              <button id="btn-perf-refresh" title="Atualizar cotações agora" class="px-3 py-2 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 border border-sky-500/20 text-xs font-bold transition active:scale-95 flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar</button>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] text-gray-500">
+              <span id="perf-last-update" class="text-[11px] text-gray-400"></span>
+              <span class="hidden sm:inline">Funciona com qualquer ativo da B3 (ex: PETR4, HGLG11) e EUA (AAPL)</span>
             </div>
             <div id="perf-ticker-chips" class="flex flex-wrap gap-2"></div>
           </div>
 
-          <!-- Período -->
+          <!-- Período (1D = pregão de hoje para decidir aporte) -->
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-xs font-bold text-gray-500">Período:</span>
+            <button data-perf-period="1D" class="perf-period-btn perf-period-active flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap transition">Hoje</button>
             <button data-perf-period="1M" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">1M</button>
             <button data-perf-period="3M" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">3M</button>
             <button data-perf-period="6M" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">6M</button>
-            <button data-perf-period="1Y" class="perf-period-btn perf-period-active flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap transition">1A</button>
+            <button data-perf-period="1Y" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">1A</button>
             <button data-perf-period="2Y" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">2A</button>
             <button data-perf-period="5Y" class="perf-period-btn flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 text-xs font-semibold whitespace-nowrap transition">5A</button>
           </div>
@@ -658,13 +667,20 @@
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div class="bg-white border border-gray-200 rounded-2xl p-4">
             <h3 class="text-sm font-bold text-gray-900 mb-1">Performance Acumulada (base 100)</h3>
-            <p class="text-[11px] text-gray-500 mb-3">Quem está na frente no período selecionado.</p>
+            <p class="text-[11px] text-gray-500 mb-3">Hoje = pregão do dia. Demais períodos = fechamento. Base 100 ajuda a ver quem rendeu mais para priorizar aporte.</p>
             <div class="h-72"><canvas id="chart-perf-line"></canvas></div>
           </div>
           <div class="bg-white border border-gray-200 rounded-2xl p-4">
             <h3 class="text-sm font-bold text-gray-900 mb-1">Ranking por Métrica</h3>
-            <p class="text-[11px] text-gray-500 mb-3">Ordenado pela métrica selecionada.</p>
+            <p class="text-[11px] text-gray-500 mb-3">Ordenado pela métrica selecionada. Clique em variação/margem para decidir o aporte.</p>
             <div class="h-72"><canvas id="chart-perf-bar"></canvas></div>
+          </div>
+        </div>
+
+        <div class="bg-sky-500/5 border border-sky-500/20 rounded-xl p-3 flex items-start gap-2.5 text-xs">
+          <i data-lucide="lightbulb" class="w-4 h-4 text-sky-500 shrink-0 mt-0.5"></i>
+          <div class="text-gray-600 leading-relaxed">
+            <strong class="text-gray-900">Como usar para aporte:</strong> Em <strong>Hoje</strong>, veja quem mais caiu mas tem maior <span class="text-indigo-600 font-bold">Margem Bazin</span> ou <span class="text-emerald-600 font-bold">DY</span> na tabela — é candidato a compra. Em <strong>1M/1A</strong>, confirme força vs fraqueza antes de aportar. Use <strong>Atualizar</strong> para buscar as cotações mais recentes.
           </div>
         </div>
 
@@ -686,7 +702,7 @@
           </table>
         </div>
         <p class="text-[10px] text-gray-400">
-          *Retorno total = variação de preço + estimativa de dividendos no período. Dividend Yield / Yield on Cost usam o DPA informado na carteira; tickers livres sem DPA mostram "—". Dados históricos: Yahoo Finance.
+          *Retorno total = variação de preço + estimativa de dividendos no período. Dividend Yield / Yield on Cost usam o DPA informado na carteira; tickers livres sem DPA mostram "—".
         </p>
       </div>
     </section>
@@ -1048,6 +1064,96 @@
           Salvar na Carteira
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Ativo -->
+  <div id="modal-edit-asset" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-gray-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3">
+        <h3 class="font-semibold text-base text-gray-900 flex items-center gap-2">
+          <i data-lucide="pencil" class="w-5 h-5 text-indigo-400"></i>
+          Editar Ativo
+        </h3>
+        <button id="btn-close-modal-edit" class="p-1 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-edit-asset" class="space-y-3 text-xs">
+        <input type="hidden" id="edit-original-ticker">
+        <div>
+          <label class="block text-gray-500 mb-1">Ticker</label>
+          <input type="text" id="edit-ticker" required placeholder="Ex: BBAS3" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+        </div>
+        <div>
+          <label class="block text-gray-500 mb-1">Nome</label>
+          <input type="text" id="edit-name" placeholder="Ex: Banco do Brasil" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-500 mb-1">Tipo</label>
+            <select id="edit-type" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+              <option value="ACAO">Ação Brasil</option>
+              <option value="FII_TIJOLO">FII Tijolo</option>
+              <option value="FII_PAPEL">FII Papel</option>
+              <option value="STOCK_USD">Stock / REIT</option>
+              <option value="ETF">ETF</option>
+              <option value="RENDA_FIXA">Renda Fixa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-500 mb-1">Quantidade</label>
+            <input type="number" id="edit-quantity" required min="0" step="any" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-500 mb-1">Preço Médio (R$)</label>
+            <input type="number" id="edit-average-price" required step="0.01" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+          </div>
+          <div>
+            <label class="block text-gray-500 mb-1">Cotação Atual (R$)</label>
+            <input type="number" id="edit-current-price" required step="0.01" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-500 mb-1">DPA Anual (R$)</label>
+          <input type="number" id="edit-dpa" step="0.01" class="w-full bg-white border border-gray-300/80 rounded-lg p-2.5 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+        </div>
+        <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition active:scale-[0.98] mt-2">
+          Salvar Alterações
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmar Exclusão de Ativo -->
+  <div id="modal-confirm-delete" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-gray-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-500"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-base text-gray-900">Excluir ativo da carteira?</h3>
+          <p id="confirm-delete-message" class="text-xs text-gray-500 mt-1 leading-relaxed"></p>
+          <div id="confirm-delete-details" class="mt-2 hidden bg-gray-100 border border-gray-200 rounded-xl px-3 py-2 text-xs"></div>
+        </div>
+        <button id="btn-close-modal-confirm-delete" class="p-1 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition shrink-0">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="bg-amber-500/5 border border-amber-500/15 rounded-xl p-3 flex items-start gap-2 text-xs text-gray-600">
+        <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+        <span>Essa ação remove o ativo permanentemente da sua carteira local e da nuvem. Não pode ser desfeita.</span>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button id="btn-cancel-delete" class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold transition active:scale-95">Cancelar</button>
+        <button id="btn-confirm-delete" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-500/20 transition active:scale-95 flex items-center gap-1.5">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Excluir ativo</span>
+        </button>
+      </div>
     </div>
   </div>
 

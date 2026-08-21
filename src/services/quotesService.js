@@ -9,16 +9,18 @@ const HIST_CACHE_KEY = "previdencia_invest_hist_cache";
 const HIST_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos de cache
 
 // Períodos suportados pelo comparador -> (interval, range) do Yahoo Finance
+// 1D = intraday do pregão de hoje (ao vivo), demais = histórico para decidir aporte
 const HIST_RANGES = {
+  '1D': { interval: '5m', range: '1d' },
   '1M': { interval: '1d', range: '1mo' },
-  '3M': { interval: '1wk', range: '3mo' },
+  '3M': { interval: '1d', range: '3mo' },
   '6M': { interval: '1wk', range: '6mo' },
-  '1Y': { interval: '1mo', range: '1y' },
+  '1Y': { interval: '1wk', range: '1y' },
   '2Y': { interval: '1mo', range: '2y' },
   '5Y': { interval: '1mo', range: '5y' }
 };
 
-// 3. Série histórica de preços (Yahoo Finance) para o Comparador de Performance
+// 3. Série histórica de preços (Yahoo Finance) para o Comparador de Performance — ao vivo e para decisão de aporte
 async function fetchHistoricalSeries(ticker, period = '1Y') {
   const clean = String(ticker).toUpperCase().trim();
   if (!clean) return { ticker: clean, points: [] };
@@ -28,43 +30,79 @@ async function fetchHistoricalSeries(ticker, period = '1Y') {
   const cache = getHistoricalCache();
   const now = Date.now();
 
-  if (cache[key] && (now - cache[key].timestamp < HIST_CACHE_TTL_MS)) {
+  // TTL menor para intraday (1D) = 2 min ao vivo, demais = 30 min
+  const ttl = period === '1D' ? 2 * 60 * 1000 : HIST_CACHE_TTL_MS;
+  if (cache[key] && (now - cache[key].timestamp < ttl)) {
     return { ticker: clean, points: cache[key].points, source: 'cache' };
   }
 
-  // Ativos B3 sem ponto ganham o sufixo .SA; stocks/ETFs em USD vão direto
-  const yahooTicker = (clean.length <= 6 && !clean.includes('.')) ? `${clean}.SA` : clean;
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooTicker}?interval=${cfg.interval}&range=${cfg.range}`;
+  // Normaliza ticker B3 -> .SA
+  const isIntraday = period === '1D';
+  let points = null;
+  let source = 'yahoo';
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Yahoo HTTP error ${response.status} para ${clean}`);
-  }
-
-  const json = await response.json();
-  const result = json && json.chart && json.chart.result && json.chart.result[0];
-  if (!result) {
-    throw new Error(`Sem dados históricos para ${clean}`);
-  }
-
-  const timestamps = result.timestamp || [];
-  const closes = (result.indicators && result.indicators.quote && result.indicators.quote[0] && result.indicators.quote[0].close) || [];
-
-  // Agrupa por data mantendo o último fechamento do dia
-  const byDate = new Map();
-  for (let i = 0; i < timestamps.length; i++) {
-    const close = closes[i];
-    if (typeof close === 'number' && close > 0 && isFinite(close)) {
-      byDate.set(new Date(timestamps[i] * 1000).toISOString().slice(0, 10), close);
+  // 1) Tenta proxy serverless /api/yahoo (evita CORS, sempre funciona em produção/Vercel)
+  try {
+    const qs = new URLSearchParams({ symbol: clean, interval: cfg.interval, range: cfg.range }).toString();
+    const proxyUrl = `/api/yahoo?${qs}`;
+    const r = await fetch(proxyUrl);
+    if (r.ok) {
+      const j = await r.json();
+      if (j && Array.isArray(j.points) && j.points.length > 0) {
+        points = j.points;
+        source = 'yahoo-proxy';
+      } else if (j && j.error) {
+        throw new Error(j.error);
+      }
     }
+  } catch (e) {
+    // proxy não disponível em dev local (sem Vercel), segue para fallback direto
   }
 
-  const points = Array.from(byDate.entries()).map(([date, close]) => ({ date, close }));
+  // 2) Fallback direto ao Yahoo (query1 -> query2) se proxy falhou
+  if (!points) {
+    const yahooTicker = (clean.length <= 6 && !clean.includes('.')) ? `${clean}.SA` : clean;
+    const bases = [
+      `https://query1.finance.yahoo.com/v8/finance/chart/${yahooTicker}?interval=${cfg.interval}&range=${cfg.range}`,
+      `https://query2.finance.yahoo.com/v8/finance/chart/${yahooTicker}?interval=${cfg.interval}&range=${cfg.range}`
+    ];
+    let lastErr = null;
+    for (const url of bases) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Yahoo HTTP ${response.status}`);
+        const json = await response.json();
+        const result = json && json.chart && json.chart.result && json.chart.result[0];
+        if (!result) throw new Error(`Sem dados para ${clean}`);
+        const timestamps = result.timestamp || [];
+        const closes = (result.indicators && result.indicators.quote && result.indicators.quote[0] && result.indicators.quote[0].close) || [];
+        const byDate = new Map();
+        for (let i = 0; i < timestamps.length; i++) {
+          const close = closes[i];
+          if (typeof close === 'number' && close > 0 && isFinite(close)) {
+            const d = new Date(timestamps[i] * 1000);
+            // Intraday: mantém hora para gráfico ao vivo; diário: agrupa por dia (último close do dia)
+            const keyDate = isIntraday ? d.toISOString() : d.toISOString().slice(0, 10);
+            byDate.set(keyDate, close);
+          }
+        }
+        points = Array.from(byDate.entries()).map(([date, close]) => ({ date, close }));
+        if (points.length > 0) break;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    if (!points) throw lastErr || new Error(`Sem dados históricos para ${clean}`);
+    source = 'yahoo-direct';
+  }
+
+  // Para intraday, já vem com timestamp completo; para diário, garante ordenação
+  points.sort((a,b) => new Date(a.date) - new Date(b.date));
 
   cache[key] = { timestamp: now, points };
   saveHistoricalCache(cache);
 
-  return { ticker: clean, points, source: 'yahoo' };
+  return { ticker: clean, points, source };
 }
 
 // Função para obter cotações com cache local

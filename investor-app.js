@@ -8,8 +8,8 @@ let newsSourceFilter = 'ALL';
 let newsLastLoad = 0;
 const NEWS_STALE_MS = 10 * 60 * 1000;
 const PERF_COLORS = ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6', '#ef4444', '#22c55e', '#f97316', '#14b8a6'];
-const PERF_PERIOD_YEARS = { '1M': 1/12, '3M': 3/12, '6M': 0.5, '1Y': 1, '2Y': 2, '5Y': 5 };
-const perfState = { tickers: [], period: '1Y', metric: 'TOTAL' };
+const PERF_PERIOD_YEARS = { '1D': 1/252, '1M': 1/12, '3M': 3/12, '6M': 0.5, '1Y': 1, '2Y': 2, '5Y': 5 };
+const perfState = { tickers: [], period: '1D', metric: 'PRICE' };
 let perfLineChart = null;
 let perfBarChart = null;
 
@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Função de bootstrap: roda só depois que o usuário autenticou (ou liberou o modo local)
 function bootstrapApp(user) {
   loadStoredPortfolio();
+  loadNotifReadSet();
   initNavigation();
   initMenu();
   initActionButtons();
@@ -543,6 +544,16 @@ function initNavigation() {
       loadNewsFeed();
     }
 
+    if (targetTab === 'tab-notificacoes' && typeof generatePortfolioAlerts === 'function') {
+      const alerts = generatePortfolioAlerts(portfolioState, (typeof SHARE_CLASSES_DATA !== 'undefined') ? SHARE_CLASSES_DATA : []);
+      markAllNotifsRead(alerts);
+    }
+
+    if (targetTab === 'tab-performance') {
+      syncPerfPortfolioTickers();
+      renderPerformanceComparator();
+    }
+
     if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
 
     if (!fromHash && !isHeaderNotif && targetTab) {
@@ -741,11 +752,19 @@ function renderAssetsTable() {
       </td>
       <td class="py-3 px-4 text-right text-indigo-400 font-bold">${yoc.toFixed(1)}%</td>
       <td class="py-3 px-4 text-right font-bold text-gray-900">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      <td class="py-3 px-4 text-center">
-        <button onclick="openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40">
-          <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> Raio-X
-        </button>
-      </td>
+       <td class="py-3 px-4 text-center">
+        <div class="flex items-center justify-center gap-1.5 flex-wrap">
+           <button onclick="openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40">
+             <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> Raio-X
+           </button>
+           <button onclick="openEditAsset('${asset.ticker}')" title="Editar ativo da carteira" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40">
+             <i data-lucide="pencil" class="shrink-0" style="width:12px;height:12px"></i> Editar
+           </button>
+           <button onclick="removeAssetFromPortfolio('${asset.ticker}')" title="Excluir ativo da carteira" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40">
+             <i data-lucide="trash-2" class="shrink-0" style="width:12px;height:12px"></i> Excluir
+           </button>
+         </div>
+       </td>
     `;
 tbody.appendChild(tr);
   });
@@ -1323,10 +1342,188 @@ function initFormAddAsset() {
     savePortfolioToStorage();
     renderAllViews();
     initRaioXSelector();
-    document.getElementById('modal-add-asset')?.classList.add('hidden');
+document.getElementById('modal-add-asset')?.classList.add('hidden');
     form.reset();
   });
 }
+
+let pendingDeleteTicker = null;
+
+function hideConfirmDeleteModal() {
+  pendingDeleteTicker = null;
+  document.getElementById('modal-confirm-delete')?.classList.add('hidden');
+}
+
+function showConfirmDeleteModal(ticker) {
+  const asset = portfolioState.assets.find(a => a.ticker === ticker);
+  if (!asset) return;
+  pendingDeleteTicker = ticker;
+  const msgEl = document.getElementById('confirm-delete-message');
+  const detailsEl = document.getElementById('confirm-delete-details');
+  if (msgEl) {
+    const namePart = (asset.name && asset.name !== asset.ticker) ? ` — ${asset.name}` : '';
+    msgEl.innerText = `Você tem certeza que deseja excluir ${asset.ticker}${namePart} da sua carteira?`;
+  }
+  if (detailsEl) {
+    const totalBRL = (asset.currentPrice * asset.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    detailsEl.classList.remove('hidden');
+    detailsEl.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-gray-500">Ticker</span>
+        <span class="font-bold text-gray-900">${asset.ticker} <span class="text-gray-500 font-medium">· ${formatTypeLabel(asset.type)}</span></span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <span class="text-gray-500">Quantidade</span>
+        <span class="font-bold text-gray-900">${asset.quantity} cotas</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <span class="text-gray-500">Valor estimado</span>
+        <span class="font-bold text-gray-900">R$ ${totalBRL}</span>
+      </div>`;
+  }
+  document.getElementById('modal-confirm-delete')?.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+}
+
+async function confirmDeleteAsset() {
+  const ticker = pendingDeleteTicker;
+  if (!ticker) return;
+  const idx = portfolioState.assets.findIndex(a => a.ticker === ticker);
+  if (idx < 0) { hideConfirmDeleteModal(); return; }
+  const btn = document.getElementById('btn-confirm-delete');
+  if (btn) { btn.disabled = true; btn.classList.add('opacity-60', 'cursor-not-allowed'); }
+  portfolioState.assets.splice(idx, 1);
+  savePortfolioToStorage();
+  renderAllViews();
+  initRaioXSelector();
+  hideConfirmDeleteModal();
+  if (btn) { btn.disabled = false; btn.classList.remove('opacity-60', 'cursor-not-allowed'); }
+  if (typeof deleteAssetsFromCloud === 'function') {
+    try {
+      await deleteAssetsFromCloud([ticker]);
+    } catch (e) {
+      console.warn('Erro ao excluir ativo da nuvem:', e);
+    }
+  }
+}
+
+function initConfirmDeleteModal() {
+  if (document.getElementById('modal-confirm-delete')?.dataset.bound === '1') return;
+  const modal = document.getElementById('modal-confirm-delete');
+  if (modal) modal.dataset.bound = '1';
+  document.getElementById('btn-close-modal-confirm-delete')?.addEventListener('click', hideConfirmDeleteModal);
+  document.getElementById('btn-cancel-delete')?.addEventListener('click', hideConfirmDeleteModal);
+  document.getElementById('btn-confirm-delete')?.addEventListener('click', confirmDeleteAsset);
+  modal?.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'modal-confirm-delete') hideConfirmDeleteModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) hideConfirmDeleteModal();
+  });
+}
+
+async function removeAssetFromPortfolio(ticker) {
+  showConfirmDeleteModal(ticker);
+}
+
+// ---------- Edição de Ativos ----------
+function openEditAsset(ticker) {
+  const asset = portfolioState.assets.find(a => a.ticker === ticker);
+  if (!asset) return;
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setVal('edit-original-ticker', asset.ticker);
+  setVal('edit-ticker', asset.ticker);
+  setVal('edit-name', asset.name || asset.ticker);
+  setVal('edit-type', asset.type || 'ACAO');
+  setVal('edit-quantity', asset.quantity);
+  setVal('edit-average-price', asset.averagePrice);
+  setVal('edit-current-price', asset.currentPrice);
+  setVal('edit-dpa', asset.historicalAverageDPA || 0);
+  document.getElementById('modal-edit-asset')?.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+}
+
+function closeEditAssetModal() {
+  document.getElementById('modal-edit-asset')?.classList.add('hidden');
+}
+
+function initFormEditAsset() {
+  document.getElementById('btn-close-modal-edit')?.addEventListener('click', closeEditAssetModal);
+  document.getElementById('modal-edit-asset')?.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'modal-edit-asset') closeEditAssetModal();
+  });
+  if (!initFormEditAsset._escBound) {
+    initFormEditAsset._escBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const editModal = document.getElementById('modal-edit-asset');
+        if (editModal && !editModal.classList.contains('hidden')) closeEditAssetModal();
+      }
+    });
+  }
+  const form = document.getElementById('form-edit-asset');
+  if (!form || form.dataset.bound === '1') return;
+  form.dataset.bound = '1';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const originalTicker = document.getElementById('edit-original-ticker')?.value.trim().toUpperCase();
+    const ticker = document.getElementById('edit-ticker')?.value.trim().toUpperCase();
+    const name = document.getElementById('edit-name')?.value.trim() || ticker;
+    const type = document.getElementById('edit-type')?.value;
+    const quantity = Number(document.getElementById('edit-quantity')?.value) || 0;
+    const avgPrice = Number(document.getElementById('edit-average-price')?.value) || 0;
+    const curPrice = Number(document.getElementById('edit-current-price')?.value) || 0;
+    const dpa = Number(document.getElementById('edit-dpa')?.value) || 0;
+    if (!ticker) { alert('Informe o ticker'); return; }
+    const idx = portfolioState.assets.findIndex(a => a.ticker === originalTicker);
+    if (idx < 0) { alert('Ativo não encontrado'); return; }
+    if (ticker !== originalTicker && portfolioState.assets.some(a => a.ticker === ticker)) {
+      alert('Já existe um ativo com o ticker ' + ticker);
+      return;
+    }
+    const asset = portfolioState.assets[idx];
+    const oldTicker = asset.ticker;
+    asset.ticker = ticker;
+    asset.name = name;
+    asset.type = type;
+    asset.quantity = quantity;
+    asset.averagePrice = avgPrice;
+    asset.currentPrice = curPrice;
+    asset.historicalAverageDPA = dpa;
+    asset.monthlyDividendEstimate = dpa / 12;
+    if (asset.deepDive) {
+      asset.deepDive.ticker = ticker;
+      asset.deepDive.companyName = name;
+    }
+    savePortfolioToStorage();
+    renderAllViews();
+    initRaioXSelector();
+    closeEditAssetModal();
+    // Sincroniza com nuvem: upsert novo + remove antigo se ticker mudou
+    if (typeof syncPortfolioToCloud === 'function') {
+      try { await syncPortfolioToCloud(portfolioState); } catch (err) { console.warn('Erro ao sincronizar edição:', err); }
+    }
+    if (ticker !== oldTicker && typeof deleteAssetsFromCloud === 'function') {
+      try { await deleteAssetsFromCloud([oldTicker]); } catch (err) { console.warn('Erro ao remover ticker antigo da nuvem:', err); }
+    }
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+  });
+}
+
+// Expor globalmente para onclick inline
+if (typeof window !== 'undefined') {
+  window.openEditAsset = openEditAsset;
+  window.removeAssetFromPortfolio = removeAssetFromPortfolio;
+  window.openRaioXForTicker = openRaioXForTicker;
+}
+
+// Hook para inicializar os modais de edição e exclusão junto ao bootstrap
+const _prevBootstrapForEdit = bootstrapApp;
+bootstrapApp = function(user) {
+  _prevBootstrapForEdit(user);
+  initFormEditAsset();
+  initConfirmDeleteModal();
+};
 
 function formatTypeLabel(type) {
   const map = {
@@ -1623,6 +1820,60 @@ initActionButtons = function() {
 // 14. Renderização do Centro de Notificações e Auditoria de Saúde
 let activeNotifFilter = 'ALL';
 
+const NOTIF_READ_KEY = 'previdencia_invest_notifs_read';
+let notifReadSet = new Set();
+
+function loadNotifReadSet() {
+  try {
+    const raw = localStorage.getItem(NOTIF_READ_KEY);
+    if (raw) notifReadSet = new Set(JSON.parse(raw));
+  } catch (e) {
+    notifReadSet = new Set();
+  }
+}
+
+function saveNotifReadSet() {
+  try {
+    localStorage.setItem(NOTIF_READ_KEY, JSON.stringify([...notifReadSet]));
+  } catch (e) {}
+}
+
+function markNotifRead(alertId) {
+  if (!alertId || notifReadSet.has(alertId)) return;
+  notifReadSet.add(alertId);
+  saveNotifReadSet();
+  if (typeof markNotificationRead === 'function') markNotificationRead(alertId);
+}
+
+function markAllNotifsRead(alerts) {
+  let changed = false;
+  (alerts || []).forEach(a => {
+    if (a.id && !notifReadSet.has(a.id)) {
+      notifReadSet.add(a.id);
+      changed = true;
+    }
+  });
+  if (changed) {
+    saveNotifReadSet();
+    if (typeof markNotificationRead === 'function') {
+      (alerts || []).forEach(a => { if (a.id) markNotificationRead(a.id); });
+    }
+    updateNotifBadge(alerts || []);
+    renderNotificationCenter();
+  }
+}
+
+function updateNotifBadge(allAlerts) {
+  const headerBadge = document.getElementById('badge-header-notif-count');
+  if (!headerBadge) return;
+  const unread = (allAlerts || []).filter(a => !notifReadSet.has(a.id)).length;
+  headerBadge.innerText = unread;
+  headerBadge.className = unread > 0
+    ? 'absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-rose-500 text-white flex items-center justify-center'
+    : 'hidden';
+  headerBadge.dataset.count = String(unread);
+}
+
 function renderNotificationCenter() {
 const container = document.getElementById('notifications-cards-container');
   const headerBadge = document.getElementById('badge-header-notif-count');
@@ -1637,14 +1888,10 @@ const container = document.getElementById('notifications-cards-container');
 
   if (headerBadge) {
     const prevCount = headerBadge.dataset.count || null;
-    headerBadge.innerText = allAlerts.length;
-    headerBadge.className = allAlerts.length > 0
-      ? 'absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-rose-500 text-white flex items-center justify-center'
-      : 'hidden';
-    if (allAlerts.length > 0 && String(allAlerts.length) !== prevCount) {
+    updateNotifBadge(allAlerts);
+    if (headerBadge.dataset.count && headerBadge.dataset.count !== prevCount) {
       pulse(headerBadge);
     }
-    headerBadge.dataset.count = String(allAlerts.length);
   }
 
   const filteredAlerts = allAlerts.filter(a => activeNotifFilter === 'ALL' || a.category === activeNotifFilter);
@@ -1676,7 +1923,10 @@ const container = document.getElementById('notifications-cards-container');
       badgeHtml = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-700 border border-indigo-500/30"><i data-lucide="coins" class="w-3 h-3 inline-block align-text-bottom"></i> PROVENTO</span>';
     }
 
-    card.className = `bg-white p-5 rounded-2xl border ${borderClass} space-y-3 shadow-lg hover:border-gray-300 transition`;
+card.className = `bg-white p-5 rounded-2xl border ${borderClass} space-y-3 shadow-lg hover:border-gray-300 transition`;
+    const isUnread = !notifReadSet.has(alert.id);
+    if (isUnread) card.classList.add('cursor-pointer', 'hover:shadow-2xl');
+    const unreadDot = isUnread ? '<span class="notif-unread-dot w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0"></span>' : '';
     card.innerHTML = `
       <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-2.5">
@@ -1684,7 +1934,7 @@ const container = document.getElementById('notifications-cards-container');
             <i data-lucide="${iconName}" class="w-4 h-4"></i>
           </div>
           <div>
-            <h4 class="font-bold text-gray-900 text-sm">${alert.title}</h4>
+            <h4 class="font-bold text-gray-900 text-sm flex items-center gap-2">${unreadDot}${alert.title}</h4>
             <span class="text-[11px] text-gray-500 font-semibold">${alert.ticker}</span>
           </div>
         </div>
@@ -1696,6 +1946,15 @@ const container = document.getElementById('notifications-cards-container');
         <span>${alert.actionAdvice}</span>
       </div>
     `;
+
+    card.addEventListener('click', () => {
+      if (notifReadSet.has(alert.id)) return;
+      markNotifRead(alert.id);
+      updateNotifBadge(allAlerts);
+      card.classList.remove('cursor-pointer', 'hover:shadow-2xl');
+      card.classList.add('opacity-70', 'cursor-default');
+      card.querySelectorAll('.notif-unread-dot').forEach(el => el.remove());
+    });
 
 container.appendChild(card);
   });
@@ -2030,11 +2289,23 @@ function syncPerfPortfolioTickers() {
 }
 
 function initPerformanceComparator() {
+  // Default: Hoje (1D) ao vivo para decidir aporte no pregão
+  if (!perfState.period) perfState.period = '1D';
   perfState.tickers = [...new Set((portfolioState.assets || []).map(a => a.ticker))];
 
   document.getElementById('btn-perf-add-ticker')?.addEventListener('click', addPerfTicker);
   document.getElementById('perf-ticker-input')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); addPerfTicker(); }
+  });
+  // Sincroniza classe ativa do período (HTML agora começa com Hoje ativo)
+  document.querySelectorAll('.perf-period-btn').forEach(b => {
+    const isActive = b.getAttribute('data-perf-period') === perfState.period;
+    b.classList.toggle('perf-period-active', isActive);
+    b.classList.toggle('bg-emerald-500/10', isActive);
+    b.classList.toggle('text-emerald-400', isActive);
+    b.classList.toggle('bg-gray-200', !isActive);
+    b.classList.toggle('hover:bg-gray-300', !isActive);
+    b.classList.toggle('text-gray-600', !isActive);
   });
 
   document.querySelectorAll('.perf-period-btn').forEach(btn => {
@@ -2063,34 +2334,95 @@ function initPerformanceComparator() {
     });
   });
 
+  document.getElementById('btn-perf-refresh')?.addEventListener('click', () => {
+    renderPerformanceComparator(true);
+  });
+
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   renderPerfTickerChips();
 }
 
-async function renderPerformanceComparator() {
+async function renderPerformanceComparator(forceRefresh = false) {
   const tab = document.getElementById('tab-performance');
   if (!tab || tab.classList.contains('hidden')) return;
 
   const tableBody = document.getElementById('perf-table-body');
+  const lastUpdateEl = document.getElementById('perf-last-update');
+  const refreshBtn = document.getElementById('btn-perf-refresh');
   if (!tableBody) return;
 
   if (perfState.tickers.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">Adicione tickers acima ou inclua ativos na carteira para começar a comparar.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">Adicione tickers acima ou inclua ativos na carteira para começar a comparar. <br><span class="text-[11px] text-gray-400">Funciona com qualquer ativo do pregão — ex: PETR4, VALE3, HGLG11, KNRI11, AAPL.</span></td></tr>';
     return;
   }
 
-  tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">Carregando dados históricos...</td></tr>';
+  // Força atualização ao vivo: limpa cache do período atual
+  if (forceRefresh) {
+    try {
+      const histCache = (typeof getHistoricalCache === 'function') ? getHistoricalCache() : {};
+      let changed = false;
+      perfState.tickers.forEach(t => {
+        const k = `${t}:${perfState.period}`;
+        if (histCache[k]) { delete histCache[k]; changed = true; }
+      });
+      if (changed && typeof saveHistoricalCache === 'function') saveHistoricalCache(histCache);
+    } catch (e) {}
+  }
+
+  const periodLabel = perfState.period === '1D' ? 'pregão de hoje' : perfState.period;
+  tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500"><span class="inline-block w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin align-middle mr-2"></span>Carregando ${periodLabel}...</td></tr>`;
+  if (refreshBtn) { refreshBtn.disabled = true; refreshBtn.classList.add('opacity-60'); }
 
   const settled = await Promise.allSettled(perfState.tickers.map(t => fetchHistoricalSeries(t, perfState.period)));
 
   const seriesByTicker = {};
+  const errors = [];
   settled.forEach((res, i) => {
     const t = perfState.tickers[i];
-    if (res.status === 'fulfilled') seriesByTicker[t] = res.value;
+    if (res.status === 'fulfilled' && res.value && res.value.points && res.value.points.length > 0) {
+      seriesByTicker[t] = res.value;
+    } else {
+      const msg = res.status === 'rejected' ? (res.reason && res.reason.message) : 'sem dados';
+      errors.push(`${t}: ${msg}`);
+    }
   });
+
+  if (Object.keys(seriesByTicker).length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-rose-500">Nenhum dado retornado. Verifique os tickers ou tente novamente.<br><span class="text-[11px] text-gray-400">${errors.slice(0,3).join(' · ')}</span><br><button onclick="renderPerformanceComparator(true)" class="mt-2 px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs font-bold">Tentar novamente</button></td></tr>`;
+    if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('opacity-60'); }
+    return;
+  }
+
+  // Mensagem de atualização
+  if (errors.length > 0 && lastUpdateEl) {
+    lastUpdateEl.innerHTML = `Atualizado agora · <span class="text-amber-600">${errors.length} ticker(s) sem dados</span>`;
+  } else if (lastUpdateEl) {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    lastUpdateEl.innerText = `Atualizado às ${hh}:${mm}`;
+  }
 
   renderPerfLineChart(seriesByTicker);
   renderPerfBarChart(seriesByTicker);
   renderPerfTable(seriesByTicker);
+
+  if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('opacity-60'); }
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+
+  // Se for 1D e mercado aberto, auto-refresh leve pode ser útil — não força, usuário clica em Ao vivo
+}
+
+function formatPerfLabel(isoDate) {
+  const d = new Date(isoDate);
+  if (perfState.period === '1D') {
+    return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+  // Para períodos maiores, mostra dia/mês
+  if (perfState.period === '1M' || perfState.period === '3M') {
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  }
+  return d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
 }
 
 function renderPerfLineChart(seriesByTicker) {
@@ -2099,7 +2431,10 @@ function renderPerfLineChart(seriesByTicker) {
 
   const allDates = new Set();
   Object.values(seriesByTicker).forEach(s => (s.points || []).forEach(p => allDates.add(p.date)));
-  const labels = Array.from(allDates).sort();
+  const sortedDates = Array.from(allDates).sort((a,b) => new Date(a) - new Date(b));
+  const labels = sortedDates.map(d => formatPerfLabel(d));
+  // Mapa de iso -> índice para alinhar séries com buracos (feriados/pregão)
+  const dateIndex = new Map(sortedDates.map((d,i) => [d, i]));
 
   const datasets = [];
   let ci = 0;
@@ -2107,18 +2442,22 @@ function renderPerfLineChart(seriesByTicker) {
     if (!s.points || s.points.length < 2) return;
     const first = s.points[0].close;
     if (!first) return;
+    // Base 100 para comparar quem rendeu mais (ideal para decidir aporte)
     const map = new Map(s.points.map(p => [p.date, (p.close / first) * 100]));
     let last = null;
-    const data = labels.map(d => (map.has(d) ? (last = map.get(d)) : last));
+    const data = sortedDates.map(d => {
+      if (map.has(d)) last = map.get(d);
+      return last;
+    });
     datasets.push({
       label: ticker,
       data,
       borderColor: PERF_COLORS[ci % PERF_COLORS.length],
       backgroundColor: PERF_COLORS[ci % PERF_COLORS.length] + '22',
       fill: false,
-      tension: 0.3,
+      tension: perfState.period === '1D' ? 0.15 : 0.3,
       borderWidth: 2,
-      pointRadius: 0
+      pointRadius: perfState.period === '1D' ? 0 : 0
     });
     ci++;
   });
@@ -2133,11 +2472,26 @@ function renderPerfLineChart(seriesByTicker) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#6b7280', font: { size: 11 } } }
+        legend: { labels: { color: '#6b7280', font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(2)} (base 100)`,
+            title: (items) => {
+              if (!items || !items[0]) return '';
+              const idx = items[0].dataIndex;
+              const iso = sortedDates[idx];
+              if (!iso) return items[0].label;
+              const d = new Date(iso);
+              return perfState.period === '1D'
+                ? d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                : d.toLocaleDateString('pt-BR');
+            }
+          }
+        }
       },
       scales: {
-        x: { ticks: { color: '#6b7280', maxTicksLimit: 8 }, grid: { color: 'rgba(156,163,175,0.3)' } },
-        y: { ticks: { color: '#6b7280', callback: v => v.toFixed(0) }, grid: { color: 'rgba(156,163,175,0.3)' } }
+        x: { ticks: { color: '#6b7280', maxTicksLimit: perfState.period === '1D' ? 8 : 6 }, grid: { color: 'rgba(156,163,175,0.25)' } },
+        y: { ticks: { color: '#6b7280', callback: v => v.toFixed(0) }, grid: { color: 'rgba(156,163,175,0.25)' } }
       }
     }
   });
