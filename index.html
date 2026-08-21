@@ -339,20 +339,20 @@
   </div>
 
   <!-- Header – React spec: flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100 + sidebar offset -->
-  <header class="sticky top-0 z-50 lg:ml-[260px] flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100">
+  <header class="sticky top-0 z-50 lg:ml-[260px] flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100 gap-4 flex-wrap lg:flex-nowrap">
       <!-- Lado Esquerdo — Campo de Busca (w-80 = 320px) -->
-      <div class="flex items-center gap-3 shrink-0">
+      <div class="flex items-center gap-3 shrink-0 flex-1 lg:flex-none min-w-0">
         <button id="btn-menu-toggle" title="Abrir menu" aria-label="Abrir menu" aria-expanded="false" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 border border-gray-200 transition shrink-0">
           <i data-lucide="menu" class="w-5 h-5" id="icon-menu-toggle"></i>
         </button>
-        <div class="relative w-80">
+        <div class="relative w-full sm:w-80">
           <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
           <input id="header-search" type="text" placeholder="Buscar ativos, relatórios..." aria-label="Buscar ativos, relatórios" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition" />
         </div>
       </div>
 
       <!-- Centro — Indicadores de Mercado (Ticker) -->
-      <div id="market-ticker" class="flex items-center gap-6 shrink-0" title="Clique para atualizar cotações">
+      <div id="market-ticker" class="flex items-center gap-4 sm:gap-6 flex-wrap justify-center shrink-0 lg:shrink-0" title="Clique para atualizar cotações">
         <!-- IBOV +1.2% : ArrowUp emerald-600 -->
         <div class="flex items-center gap-1.5" title="Ibovespa B3 - clique para atualizar">
           <i data-lucide="arrow-up" class="w-4 h-4 text-emerald-600 shrink-0"></i>
@@ -385,8 +385,8 @@
           <span>Offline</span>
         </span>
 
-        <div class="relative hidden sm:flex" id="relatorio-wrapper">
-          <button id="btn-header-relatorio" aria-haspopup="menu" aria-expanded="false" class="px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-sm font-medium transition">Relatório</button>
+        <div class="relative flex" id="relatorio-wrapper">
+          <button id="btn-header-relatorio" aria-haspopup="menu" aria-expanded="false" class="px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-sm font-medium transition whitespace-nowrap">Relatório</button>
           <div id="relatorio-menu" class="hidden absolute right-0 top-full mt-2 w-[200px] bg-white rounded-lg shadow-xl z-50 overflow-hidden flex-col border border-gray-200">
             <button data-tab="tab-relatorio" id="btn-relatorio-view" class="w-full text-left px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 transition flex items-center gap-2.5">
               <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
