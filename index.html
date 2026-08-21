@@ -338,55 +338,79 @@
     </div>
   </div>
 
-  <!-- Header – TopAppBar per DESIGN.md: 64px, blur 20px 80%, shadow soft, 260px offset -->
-  <header class="sticky top-0 z-50 top-app-bar lg:ml-[260px] min-h-[64px] flex items-center transition-all">
-    <div class="w-full max-w-7xl mx-auto px-4 lg:px-8 flex flex-wrap lg:flex-nowrap items-center justify-between gap-5 py-2">
-      <div class="flex items-center gap-3 flex-1 max-w-[420px]">
-        <button id="btn-menu-toggle" title="Abrir menu" aria-label="Abrir menu" aria-expanded="false" class="lg:hidden p-2 rounded-lg bg-[rgba(0,81,63,0.05)] hover:bg-[rgba(0,81,63,0.08)] text-[#3e4945] border border-[rgba(190,201,195,0.3)] transition shrink-0">
+  <!-- Header – React spec: flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100 + sidebar offset -->
+  <header class="sticky top-0 z-50 lg:ml-[260px] flex items-center justify-between w-full px-6 py-3 bg-white border-b border-gray-100">
+      <!-- Lado Esquerdo — Campo de Busca (w-80 = 320px) -->
+      <div class="flex items-center gap-3 shrink-0">
+        <button id="btn-menu-toggle" title="Abrir menu" aria-label="Abrir menu" aria-expanded="false" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 border border-gray-200 transition shrink-0">
           <i data-lucide="menu" class="w-5 h-5" id="icon-menu-toggle"></i>
         </button>
-        <div class="relative flex-1">
-          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3e4945]/50 pointer-events-none"></i>
-          <input id="header-search" type="search" placeholder="Buscar ativo, FII, classe..." aria-label="Buscar na carteira" class="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-[rgba(190,201,195,0.3)] hover:border-[rgba(190,201,195,0.5)] focus:outline-none focus:ring-2 focus:ring-[#00513f]/20 focus:border-[#00513f]/30 text-[14px] font-medium text-[#191c1e] placeholder:text-[#3e4945]/50 transition" />
+        <div class="relative w-80">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+          <input id="header-search" type="text" placeholder="Buscar ativos, relatórios..." aria-label="Buscar ativos, relatórios" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition" />
         </div>
       </div>
 
-      <div id="market-ticker" class="flex items-center gap-3 sm:gap-4 bg-[rgba(255,255,255,0.8)] backdrop-blur-[20px] border border-[rgba(255,255,255,0.5)] shadow-[0_4px_30px_rgba(70,72,212,0.05)] rounded-lg px-3 py-1.5 text-xs text-[#3e4945] shrink-0" title="Clique para atualizar cotações">
-        <div class="flex items-center gap-1.5" title="Ibovespa B3 - clique para atualizar"><span class="font-semibold text-[12px] tracking-[0.01em] hidden sm:inline">IBOV:</span><span class="font-semibold sm:hidden text-[12px]">IBOV</span><span id="market-ibov-price" class="mono font-semibold text-[#191c1e] text-[14px]">—</span><span id="market-ibov-change" class="mono text-[12px] font-semibold tracking-[0.01em]"></span></div>
-        <div class="h-3 w-[1px] bg-[rgba(190,201,195,0.5)]"></div>
-        <div class="flex items-center gap-1.5" title="Dólar comercial (USD/BRL) - clique para atualizar"><span class="font-semibold text-[12px] tracking-[0.01em] hidden sm:inline">Dólar:</span><span class="font-semibold sm:hidden text-[12px]">US$</span><span id="market-dolar-price" class="mono font-semibold text-[#191c1e] text-[14px]">—</span><span id="market-dolar-change" class="mono text-[12px] font-semibold tracking-[0.01em]"></span></div>
+      <!-- Centro — Indicadores de Mercado (Ticker) -->
+      <div id="market-ticker" class="flex items-center gap-6 shrink-0" title="Clique para atualizar cotações">
+        <!-- IBOV +1.2% : ArrowUp emerald-600 -->
+        <div class="flex items-center gap-1.5" title="Ibovespa B3 - clique para atualizar">
+          <i data-lucide="arrow-up" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+          <span class="text-sm font-bold text-emerald-600 whitespace-nowrap flex items-center gap-1">
+            <span>IBOV</span>
+            <span id="market-ibov-change">+1.2%</span>
+            <span id="market-ibov-price" class="hidden mono"></span>
+          </span>
+        </div>
+        <!-- DOLAR -0.5% : ArrowDown rose-500 -->
+        <div class="flex items-center gap-1.5" title="Dólar comercial (USD/BRL) - clique para atualizar">
+          <i data-lucide="arrow-down" class="w-4 h-4 text-rose-500 shrink-0"></i>
+          <span class="text-sm font-bold text-rose-500 whitespace-nowrap flex items-center gap-1">
+            <span>DOLAR</span>
+            <span id="market-dolar-change">-0.5%</span>
+            <span id="market-dolar-price" class="hidden mono"></span>
+          </span>
+        </div>
+        <!-- SELIC 10.75% : texto discreto text-gray-500 com valor em negrito cinza escuro -->
+        <div class="flex items-center gap-1.5 text-sm">
+          <span class="text-gray-500 font-medium">SELIC</span>
+          <span class="font-bold text-gray-900">10.75%</span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2 flex-nowrap overflow-x-auto custom-scrollbar py-2">
-        
+      <!-- Lado Direito — Ações e Perfil -->
+      <div class="flex items-center gap-4 shrink-0">
         <span id="pwa-offline-badge" title="Sem conexão - exibindo dados salvos" class="hidden items-center gap-1.5 px-3 py-2 rounded-lg bg-[#ffdad6] text-[#93000a] border border-[#ba1a1a]/20 transition text-xs font-semibold">
           <i data-lucide="wifi-off" class="w-4 h-4"></i>
           <span>Offline</span>
         </span>
 
-        <div class="relative" id="relatorio-wrapper">
-          <button id="btn-header-relatorio" aria-haspopup="menu" aria-expanded="false" class="px-3 py-2 rounded-lg hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] text-[14px] font-medium tracking-[0.01em] transition">Relatório</button>
-          <div id="relatorio-menu" class="hidden absolute right-0 top-full mt-2 w-[200px] glass-card rounded-[12px] shadow-xl z-50 overflow-hidden flex-col border border-[rgba(190,201,195,0.3)]">
-            <button data-tab="tab-relatorio" id="btn-relatorio-view" class="w-full text-left px-4 py-3 text-[14px] font-medium text-[#191c1e] hover:bg-[rgba(0,81,63,0.06)] transition flex items-center gap-2.5">
-              <i data-lucide="file-text" class="w-4 h-4 text-[#4648d4]"></i>
+        <div class="relative hidden sm:flex" id="relatorio-wrapper">
+          <button id="btn-header-relatorio" aria-haspopup="menu" aria-expanded="false" class="px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-sm font-medium transition">Relatório</button>
+          <div id="relatorio-menu" class="hidden absolute right-0 top-full mt-2 w-[200px] bg-white rounded-lg shadow-xl z-50 overflow-hidden flex-col border border-gray-200">
+            <button data-tab="tab-relatorio" id="btn-relatorio-view" class="w-full text-left px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 transition flex items-center gap-2.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
               <span>Ver relatório</span>
             </button>
           </div>
         </div>
 
+        <!-- Bell com bolinha amber-500 -->
         <div class="relative" id="notif-wrapper">
-          <button id="btn-header-notifications" title="Notificações" aria-haspopup="dialog" aria-expanded="false" class="relative flex items-center justify-center p-2.5 rounded-full hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] transition">
+          <button id="btn-header-notifications" title="Notificações" aria-haspopup="dialog" aria-expanded="false" class="relative flex items-center justify-center p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition">
             <i data-lucide="bell" class="w-5 h-5"></i>
-            <span id="badge-header-notif-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
+            <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white" aria-hidden="true"></span>
+            <span id="badge-header-notif-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-amber-500 text-white flex items-center justify-center shadow-sm border-2 border-white">0</span>
           </button>
         </div>
 
-        <button id="btn-header-profile" data-tab="tab-perfil" title="Perfil" aria-label="Abrir perfil" class="w-8 h-8 rounded-full bg-gradient-to-br from-[#006b55] to-[#00513f] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_2px_8px_rgba(0,81,63,0.25)] hover:scale-[1.05] transition ring-2 ring-white/80">
-          <img id="header-profile-avatar-img" src="" alt="Avatar" class="hidden w-full h-full object-cover">
-          <i data-lucide="user" id="header-profile-avatar-icon" class="w-4 h-4 text-white"></i>
+        <!-- Avatar w-8 h-8 rounded-full border border-gray-200 + ChevronDown -->
+        <button id="btn-header-profile" data-tab="tab-perfil" title="Perfil" aria-label="Abrir perfil" class="flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-full p-0.5 transition">
+          <img id="header-profile-avatar-img" src="https://i.pravatar.cc/100?img=12" alt="Avatar do usuário" class="w-8 h-8 rounded-full border border-gray-200 object-cover">
+          <i data-lucide="user" id="header-profile-avatar-icon" class="hidden w-4 h-4 text-gray-500"></i>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500 shrink-0"></i>
         </button>
       </div>
-    </div>
   </header>
 
   <!-- Notificações Popup – fixed fora do header para não ser cortado pelo overflow -->
