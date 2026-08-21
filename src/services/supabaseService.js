@@ -193,16 +193,21 @@ async function getLoggedUser() {
 }
 
 // 4.1 Obter sessão local (funciona offline; validação do servidor é feita por getLoggedUser)
-function getSessionUser() {
+async function getSessionUser() {
   const client = initSupabaseClient();
   if (!client) return null;
 
   try {
-    const { data: { session } } = client.auth.getSession();
+    const { data: { session } } = await client.auth.getSession();
     return session?.user || null;
   } catch (e) {
     return null;
   }
+}
+
+// 4.1b Wrapper síncrono legado mantido por compatibilidade (retorna null e deve ser usado via await)
+function getSessionUserSync() {
+  return null;
 }
 
 // 4.2 Ouvinte de mudanças de autenticação (login, logout, OAuth, refresh de sessão)

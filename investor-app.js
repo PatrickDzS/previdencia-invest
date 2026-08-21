@@ -286,9 +286,18 @@ function initAuthGate() {
     try {
       const remember = document.getElementById('login-remember')?.checked ?? true;
       if (typeof setPersistSessionDefault === 'function') setPersistSessionDefault(remember);
+      try { sessionStorage.setItem('pv_remember', remember ? '1' : '0'); } catch (e) {}
+      try { localStorage.setItem('pv_remember', remember ? '1' : '0'); } catch (e) {}
       const data = await signInUser(email, password);
       setAuthLoading(btn, false);
       if (data?.user) { unlockApp(data.user); return; }
+      // Fallback: tenta obter sessão local após login
+      if (typeof getSessionUser === 'function') {
+        try {
+          const u = await getSessionUser();
+          if (u) { unlockApp(u); return; }
+        } catch (e) {}
+      }
       showAuthMessage('info', 'Sessão criada. Verifique seu e-mail para confirmar o acesso.');
     } catch (err) {
       setAuthLoading(btn, false);
@@ -347,6 +356,7 @@ function initAuthGate() {
       const remember = document.getElementById('login-remember')?.checked ?? true;
       if (typeof setPersistSessionDefault === 'function') setPersistSessionDefault(remember);
       try { sessionStorage.setItem('pv_remember', remember ? '1' : '0'); } catch (e) {}
+      try { localStorage.setItem('pv_remember', remember ? '1' : '0'); } catch (e) {}
       await signInWithGoogle();
     } catch (err) {
       setAuthLoading(googleBtn, false);
@@ -358,9 +368,17 @@ function initAuthGate() {
   localBtn?.addEventListener('click', () => unlockApp(null, true));
 
   // Listener de sessão (login, logout, OAuth redirect e refresh)
+  // Restaura preferência "Manter conectado" de reloads anteriores
   try {
-    if (sessionStorage.getItem('pv_remember') === '0' && typeof setPersistSessionDefault === 'function') {
+    const rememberFlag = (function() {
+      try { const v = sessionStorage.getItem('pv_remember'); if (v === '0' || v === '1') return v; } catch(e){}
+      try { const v = localStorage.getItem('pv_remember'); if (v === '0' || v === '1') return v; } catch(e){}
+      return null;
+    })();
+    if (rememberFlag === '0' && typeof setPersistSessionDefault === 'function') {
       setPersistSessionDefault(false);
+    } else if (rememberFlag === '1' && typeof setPersistSessionDefault === 'function') {
+      setPersistSessionDefault(true);
     }
   } catch (e) {}
   if (typeof onAuthStateChange === 'function') {
@@ -380,23 +398,42 @@ function initAuthGate() {
     return;
   }
 
-  const sessionUser = (typeof getSessionUser === 'function') ? getSessionUser() : null;
-  if (sessionUser) {
-    unlockApp(sessionUser);
-    if (typeof getLoggedUser === 'function') {
-      getLoggedUser().then((serverUser) => {
-        if (serverUser && sessionUser.id !== serverUser.id) {
-          populateProfileUser(serverUser);
+  // Verificação assíncrona de sessão existente (persistida no localStorage)
+  // Mantém o gate visível até confirmar que não há sessão, mas desbloqueia assim que encontrar
+  (async () => {
+    try {
+      let sessionUser = null;
+      if (typeof getSessionUser === 'function') {
+        const maybePromise = getSessionUser();
+        sessionUser = (maybePromise && typeof maybePromise.then === 'function') ? await maybePromise : maybePromise;
+      }
+      if (sessionUser) {
+        unlockApp(sessionUser);
+        if (typeof getLoggedUser === 'function') {
+          getLoggedUser().then((serverUser) => {
+            if (serverUser && sessionUser.id !== serverUser.id) {
+              populateProfileUser(serverUser);
+            }
+          }).catch(() => {});
         }
-      }).catch(() => {});
+        return;
+      }
+      // Fallback: validação com servidor (refresh se necessário)
+      if (typeof getLoggedUser === 'function') {
+        const serverUser = await getLoggedUser();
+        if (serverUser) { unlockApp(serverUser); return; }
+      }
+    } catch (e) {
+      console.warn('Falha ao restaurar sessão:', e);
     }
-    return;
-  }
-
-  if (window.location.hash) {
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-  }
-  setGateVisible(true);
+    // Sem sessão válida -> mantém gate de login
+    if (!authGateUnlocked) {
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      setGateVisible(true);
+    }
+  })();
 }
 
 function loadStoredPortfolio() {
@@ -618,7 +655,13 @@ function renderDashboardMetrics() {
     
     const dpaAnnualBRL = (asset.historicalAverageDPA || 0) * exchange;
     totalAnnualDividends += (dpaAnnualBRL * asset.quantity);
-    totalMonthlyDividends += ((asset.monthlyDividendEstimate || (dpaAnnualBRL / 12)) * exchange * asset.quantity);
+    // Renda mensal = (DPA mensal por cota em BRL) * quantidade
+    // Se monthlyDividendEstimate existir, ele está na moeda original -> converter para BRL via exchange
+    // Caso contrário, usar dpaAnnualBRL/12 que já está em BRL (evita double conversion)
+    const monthlyPerShareBRL = (asset.monthlyDividendEstimate != null && asset.monthlyDividendEstimate !== 0)
+      ? (Number(asset.monthlyDividendEstimate) || 0) * exchange
+      : (dpaAnnualBRL / 12);
+    totalMonthlyDividends += monthlyPerShareBRL * (Number(asset.quantity) || 0);
   });
 
   const totalReturnBRL = totalPatrimony - totalCost;
@@ -2053,8 +2096,15 @@ function initProfilePage() {
     if (typeof updateUser === 'function') {
       try {
         await updateUser({ data: { full_name: name.value.trim() } });
-        const user = (typeof getSessionUser === 'function') ? getSessionUser() : null;
-        if (user) populateProfileUser({ ...user, user_metadata: { ...user.user_metadata, full_name: name.value.trim() } });
+        let user = null;
+        if (typeof getSessionUser === 'function') {
+          const maybe = getSessionUser();
+          user = (maybe && typeof maybe.then === 'function') ? await maybe : maybe;
+        }
+        if (!user && typeof getLoggedUser === 'function') {
+          try { user = await getLoggedUser(); } catch(e){}
+        }
+        if (user) populateProfileUser({ ...user, user_metadata: { ...(user.user_metadata||{}), full_name: name.value.trim() } });
         alert(`Perfil atualizado para ${name.value.trim()}.`);
         return;
       } catch (err) {
