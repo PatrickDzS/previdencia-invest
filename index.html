@@ -199,10 +199,10 @@
         </div>
       </div>
 
-      <div class="hidden 2xl:flex items-center gap-4 bg-white/60 border border-gray-200/60 rounded-lg px-3 py-1.5 text-xs text-gray-500">
-        <div class="flex items-center gap-1.5"><span>IBOV:</span><span class="mono font-medium text-gray-600">—</span></div>
+      <div id="market-ticker" class="flex items-center gap-3 sm:gap-4 bg-white/80 border border-gray-200/60 rounded-lg px-3 py-1.5 text-xs text-gray-500 shrink-0" title="Clique para atualizar cotações">
+        <div class="flex items-center gap-1.5" title="Ibovespa B3 - clique para atualizar"><span class="font-semibold hidden sm:inline">IBOV:</span><span class="font-semibold sm:hidden">IBOV</span><span id="market-ibov-price" class="mono font-bold text-gray-600">—</span><span id="market-ibov-change" class="mono text-[11px] font-semibold"></span></div>
         <div class="h-3 w-[1px] bg-gray-300/60"></div>
-        <div class="flex items-center gap-1.5"><span>Dólar:</span><span class="mono font-medium text-gray-600">—</span></div>
+        <div class="flex items-center gap-1.5" title="Dólar comercial (USD/BRL) - clique para atualizar"><span class="font-semibold hidden sm:inline">Dólar:</span><span class="font-semibold sm:hidden">US$</span><span id="market-dolar-price" class="mono font-bold text-gray-600">—</span><span id="market-dolar-change" class="mono text-[11px] font-semibold"></span></div>
       </div>
 
       <div class="flex items-center gap-2 flex-nowrap overflow-x-auto custom-scrollbar py-2">
@@ -1176,6 +1176,7 @@
   <script src="src/services/pwaService.js"></script>
   <script src="src/services/newsService.js"></script>
   <script src="src/services/assetInfoService.js"></script>
+  <script src="src/services/marketService.js"></script>
   <script src="vendor/lucide.min.js"></script>
   <script src="investor-app.js"></script>
 

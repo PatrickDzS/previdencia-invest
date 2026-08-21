@@ -107,6 +107,7 @@ function bootstrapApp(user) {
   initPerformanceComparator();
   initTaxPage();
   initDividendsRefresh();
+  initMarketTicker();
   history.replaceState(null, '', window.location.pathname + window.location.search + '#/dashboard');
   renderAllViews();
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
@@ -538,6 +539,118 @@ function initDividendsRefresh() {
       } catch(e){ /* silencioso */ }
     }, 1200);
   }
+}
+
+/* ============================================================
+   IBOV + Dólar no cabeçalho (tempo real)
+   ============================================================ */
+function formatMarketPrice(value, opts = {}) {
+  if (value == null || !isFinite(value)) return '—';
+  const decimals = opts.decimals != null ? opts.decimals : (value >= 1000 ? 0 : 2);
+  return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function renderMarketTicker(data) {
+  const ibovPriceEl = document.getElementById('market-ibov-price');
+  const ibovChangeEl = document.getElementById('market-ibov-change');
+  const dolarPriceEl = document.getElementById('market-dolar-price');
+  const dolarChangeEl = document.getElementById('market-dolar-change');
+  const tickerEl = document.getElementById('market-ticker');
+  if (!ibovPriceEl || !dolarPriceEl) return;
+
+  const ibov = data && data.ibov;
+  const dolar = data && data.dolar;
+
+  if (ibov && ibov.price != null && isFinite(ibov.price)) {
+    ibovPriceEl.innerText = formatMarketPrice(ibov.price, { decimals: 0 }) + ' pts';
+    ibovPriceEl.className = 'mono font-bold ' + (ibov.changePercent > 0 ? 'text-emerald-600' : ibov.changePercent < 0 ? 'text-rose-600' : 'text-gray-700');
+    if (ibovChangeEl) {
+      const pct = ibov.changePercent;
+      if (pct != null && isFinite(pct)) {
+        const sign = pct > 0 ? '+' : '';
+        ibovChangeEl.innerText = `${sign}${Number(pct).toFixed(2)}%`;
+        ibovChangeEl.className = 'mono text-[11px] font-bold ' + (pct > 0 ? 'text-emerald-600' : pct < 0 ? 'text-rose-500' : 'text-gray-500');
+      } else { ibovChangeEl.innerText = ''; }
+    }
+    ibovPriceEl.title = `${ibov.source || 'IBOV'} · ${ibov.updatedAt ? new Date(ibov.updatedAt).toLocaleTimeString('pt-BR') : ''}`;
+  } else {
+    ibovPriceEl.innerText = '—';
+    ibovPriceEl.className = 'mono font-bold text-gray-500';
+    if (ibovChangeEl) ibovChangeEl.innerText = '';
+    if (ibov && ibov.error) ibovPriceEl.title = ibov.error;
+  }
+
+  if (dolar && dolar.price != null && isFinite(dolar.price)) {
+    dolarPriceEl.innerText = 'R$ ' + formatMarketPrice(dolar.price, { decimals: 2 });
+    dolarPriceEl.className = 'mono font-bold ' + (dolar.changePercent > 0 ? 'text-amber-600' : dolar.changePercent < 0 ? 'text-emerald-600' : 'text-gray-700');
+    if (dolarChangeEl) {
+      const pct = dolar.changePercent;
+      if (pct != null && isFinite(pct)) {
+        const sign = pct > 0 ? '+' : '';
+        dolarChangeEl.innerText = `${sign}${Number(pct).toFixed(2)}%`;
+        dolarChangeEl.className = 'mono text-[11px] font-bold ' + (pct > 0 ? 'text-rose-500' : pct < 0 ? 'text-emerald-600' : 'text-gray-500');
+      } else { dolarChangeEl.innerText = ''; }
+    }
+    dolarPriceEl.title = `${dolar.source || 'USD/BRL'} · ${dolar.updatedAt ? new Date(dolar.updatedAt).toLocaleTimeString('pt-BR') : ''}`;
+  } else {
+    dolarPriceEl.innerText = '—';
+    dolarPriceEl.className = 'mono font-bold text-gray-500';
+    if (dolarChangeEl) dolarChangeEl.innerText = '';
+    if (dolar && dolar.error) dolarPriceEl.title = dolar.error;
+  }
+
+  if (tickerEl && data && data.fetchedAt) {
+    const t = new Date(data.fetchedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    tickerEl.title = `Atualizado às ${t} · clique para atualizar`;
+  }
+}
+
+let marketTickerInterval = null;
+async function refreshMarketTicker(force = false) {
+  const priceEl = document.getElementById('market-ibov-price');
+  if (priceEl && force) priceEl.innerText = '...';
+  const dolarEl = document.getElementById('market-dolar-price');
+  if (dolarEl && force) dolarEl.innerText = '...';
+  try {
+    if (typeof getMarketIndicators !== 'function') {
+      console.warn('marketService não carregado');
+      return;
+    }
+    const data = await getMarketIndicators({ force });
+    renderMarketTicker(data);
+  } catch (e) {
+    console.warn('Falha ao atualizar IBOV/Dólar:', e);
+    // tenta exibir cache expirado
+    try {
+      const raw = localStorage.getItem('previdencia_invest_market_cache');
+      if (raw) {
+        const c = JSON.parse(raw);
+        if (c && c.data) renderMarketTicker(c.data);
+      }
+    } catch (e2) {}
+  }
+}
+
+function initMarketTicker() {
+  // renderiza cache imediatamente para não ficar "—"
+  try {
+    const raw = localStorage.getItem('previdencia_invest_market_cache');
+    if (raw) {
+      const c = JSON.parse(raw);
+      if (c && c.data) renderMarketTicker(c.data);
+    }
+  } catch (e) {}
+  // busca ao vivo
+  setTimeout(() => refreshMarketTicker(false), 400);
+  // clique para atualizar
+  document.getElementById('market-ticker')?.addEventListener('click', () => refreshMarketTicker(true));
+  // auto refresh a cada 3 minutos
+  if (marketTickerInterval) clearInterval(marketTickerInterval);
+  marketTickerInterval = setInterval(() => refreshMarketTicker(false), 3 * 60 * 1000);
+  // atualiza quando volta para aba visível
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshMarketTicker(false);
+  });
 }
 
 // Menu lateral: fixo no desktop (lg+), drawer no mobile via hamburguer
