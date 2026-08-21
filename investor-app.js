@@ -106,6 +106,7 @@ function bootstrapApp(user) {
   initRetirementSimulator();
   initPerformanceComparator();
   initTaxPage();
+  initDividendsRefresh();
   history.replaceState(null, '', window.location.pathname + window.location.search + '#/dashboard');
   renderAllViews();
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
@@ -491,6 +492,56 @@ function savePortfolioToStorage() {
     console.error('Erro ao salvar:', e);
   }
 }
+
+/* ============================================================
+   Dividendos em tempo real (Investidor10 / StatusInvest via Brapi)
+   ============================================================ */
+async function handleRefreshDividends(btn) {
+  const tickers = (portfolioState.assets||[]).map(a=>a.ticker);
+  if (!tickers.length) { alert('Adicione ativos na carteira primeiro.'); return; }
+  const targetBtn = btn || document.getElementById('btn-refresh-dividends');
+  const lastEl = document.getElementById('dividends-last-update');
+  if (targetBtn) { targetBtn.disabled = true; targetBtn.classList.add('opacity-60','cursor-not-allowed'); }
+  const orig = targetBtn ? targetBtn.innerHTML : '';
+  if (targetBtn) targetBtn.innerHTML = '<span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Atualizando...';
+  try {
+    if (typeof enrichPortfolioWithLiveDividends !== 'function') throw new Error('Serviço de dividendos não carregado');
+    const res = await enrichPortfolioWithLiveDividends(portfolioState);
+    savePortfolioToStorage();
+    renderAllViews();
+    initRaioXSelector();
+    if (lastEl) {
+      const now = new Date();
+      lastEl.innerText = '· ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) + ' · ' + (res.updated||0) + ' atualizados';
+      lastEl.classList.remove('hidden');
+    }
+    // feedback sutil
+    if (res.updated === 0) alert('Nenhum dividendo atualizado. Verifique a conexão ou tente novamente.');
+  } catch (err) {
+    console.warn('Erro ao atualizar dividendos:', err);
+    alert('Falha ao buscar dividendos em tempo real. Tente novamente em instantes.\n' + (err && err.message || ''));
+  } finally {
+    if (targetBtn) { targetBtn.disabled = false; targetBtn.classList.remove('opacity-60','cursor-not-allowed'); targetBtn.innerHTML = orig; if (window.lucide) lucide.createIcons({icons: lucide.icons}); }
+  }
+}
+
+function initDividendsRefresh() {
+  document.getElementById('btn-refresh-dividends')?.addEventListener('click', (e)=> handleRefreshDividends(e.currentTarget));
+  // Atualização automática silenciosa ao abrir o app (se houver ativos) – respeita cache de 15min
+  if ((portfolioState.assets||[]).length > 0 && typeof enrichPortfolioWithLiveDividends === 'function') {
+    // aguarda 1.2s para não bloquear render inicial
+    setTimeout(async ()=>{
+      try {
+        const res = await enrichPortfolioWithLiveDividends(portfolioState);
+        if (res.updated > 0) { savePortfolioToStorage(); renderAllViews(); initRaioXSelector();
+          const lastEl = document.getElementById('dividends-last-update');
+          if (lastEl) { lastEl.innerText = '· auto ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); lastEl.classList.remove('hidden'); }
+        }
+      } catch(e){ /* silencioso */ }
+    }, 1200);
+  }
+}
+
 // Menu lateral: fixo no desktop (lg+), drawer no mobile via hamburguer
 function initMenu() {
   const sidebar = document.getElementById('sidebar-menu');
@@ -800,9 +851,19 @@ function renderAssetsTable() {
     const bazin = calculateBazinCeilingPrice(asset.historicalAverageDPA, asset.targetAnnualYield || 0.06);
     const margin = calculateMarginOfSafety(bazin, asset.currentPrice);
     const yoc = calculateYieldOnCost(asset.historicalAverageDPA, asset.averagePrice);
+    const monthlyPerShareBRL = (asset.monthlyDividendEstimate != null && asset.monthlyDividendEstimate !== 0)
+      ? (Number(asset.monthlyDividendEstimate) || 0) * exchange
+      : ((Number(asset.historicalAverageDPA) || 0) * exchange / 12);
+    const monthlyTotalBRL = monthlyPerShareBRL * (Number(asset.quantity) || 0);
 
     const tr = document.createElement('tr');
-    tr.className = 'hover:bg-gray-200/40 transition font-medium';
+    tr.className = 'hover:bg-gray-200/40 transition font-medium group';
+    tr.title = 'Clique para editar ' + asset.ticker;
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      openEditAsset(asset.ticker);
+    });
     tr.innerHTML = `
       <td class="py-3 px-4">
         <div class="flex items-center gap-2.5">
@@ -832,16 +893,20 @@ function renderAssetsTable() {
       </td>
       <td class="py-3 px-4 text-right text-indigo-400 font-bold">${yoc.toFixed(1)}%</td>
       <td class="py-3 px-4 text-right font-bold text-gray-900">R$ ${totalValBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-       <td class="py-3 px-4 text-center">
-        <div class="flex items-center justify-center gap-1.5 flex-wrap">
-           <button onclick="openRaioXForTicker('${asset.ticker}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40">
+      <td class="py-3 px-4 text-right bg-indigo-500/5" title="Provento mensal: ${asset.quantity}×R$ ${monthlyPerShareBRL.toFixed(2)} = R$ ${monthlyTotalBRL.toFixed(2)} — dados ao vivo via StatusInvest/Investidor10 (Brapi)">
+        <div class="font-bold text-indigo-600">R$ ${monthlyTotalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="text-[10px] text-gray-500 font-normal">R$ ${monthlyPerShareBRL.toFixed(2)}/cota</div>
+      </td>
+      <td class="py-3 px-4 text-center sticky right-0 bg-white/95 backdrop-blur shadow-[-4px_0_8px_rgba(0,0,0,0.04)]">
+        <div class="flex items-center justify-center gap-1.5">
+           <button onclick="event.stopPropagation(); openRaioXForTicker('${asset.ticker}')" title="Raio-X detalhado (composição e imóveis via Investidor10/StatusInvest)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/20 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 shrink-0">
              <i data-lucide="microscope" class="shrink-0" style="width:12px;height:12px"></i> Raio-X
            </button>
-           <button onclick="openEditAsset('${asset.ticker}')" title="Editar ativo da carteira" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40">
-             <i data-lucide="pencil" class="shrink-0" style="width:12px;height:12px"></i> Editar
+           <button onclick="event.stopPropagation(); openEditAsset('${asset.ticker}')" title="Editar ativo (quantidade, preço, proventos)" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/20 border border-indigo-600 transition-all duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 shrink-0">
+             <i data-lucide="pencil" class="shrink-0" style="width:13px;height:13px"></i> Editar
            </button>
-           <button onclick="removeAssetFromPortfolio('${asset.ticker}')" title="Excluir ativo da carteira" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40">
-             <i data-lucide="trash-2" class="shrink-0" style="width:12px;height:12px"></i> Excluir
+           <button onclick="event.stopPropagation(); removeAssetFromPortfolio('${asset.ticker}')" title="Excluir ativo da carteira" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-white hover:bg-rose-50 text-gray-500 hover:text-rose-500 border border-gray-200 hover:border-rose-200 transition-colors duration-150 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/30 shrink-0">
+             <i data-lucide="trash-2" class="shrink-0" style="width:12px;height:12px"></i>
            </button>
          </div>
        </td>
@@ -1037,6 +1102,44 @@ function renderRaioXDetail(ticker = null) {
   const container = document.getElementById('raiox-detail-content');
   if (!container || !deep) return;
 
+  // Enriquecimento ao vivo via StatusInvest/Investidor10 (Brapi) – se Raio-X for genérico
+  const isGenericRaiox = !deep.properties?.length && !deep.debtsPortfolio?.length && !deep.fixedIncomeDetails
+    && (String(deep.description||'').includes('Ativo adicionado') || String(deep.description||'').includes('Ativo importado') || deep.companyName === deep.ticker);
+  if (isGenericRaiox && typeof fetchAssetInfos === 'function' && !asset._raioxFetching) {
+    asset._raioxFetching = true;
+    // placeholder de carregamento
+    container.innerHTML = `<div class="flex items-center gap-2 text-xs text-cyan-600 bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-3"><span class="w-3.5 h-3.5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></span> Buscando Raio-X em tempo real em StatusInvest/Investidor10 e Brapi para ${asset.ticker}...</div>`;
+    fetchAssetInfos([targetTicker]).then(infos=>{
+      const info = infos[targetTicker];
+      if (info) {
+        // atualiza deepDive com dados vivos
+        deep.companyName = info.name || deep.companyName;
+        if (info.price) asset.currentPrice = info.price;
+        if (info.monthlyDividend != null) {
+          asset.monthlyDividendEstimate = info.monthlyDividend;
+          asset.historicalAverageDPA = info.annualDividend != null ? info.annualDividend : info.monthlyDividend*12;
+        }
+        deep.description = info.name ? `${info.name} (${info.type}) — dados ao vivo via ${info.sources?.scraping?.source || info.sources?.brapi?.source || 'Brapi'}.` : deep.description;
+        if (info.sources?.scraping?.info?.segment) deep.subsector = info.sources.scraping.info.segment;
+        if (info.raioxUrl) deep.infoUrl = info.raioxUrl;
+        if (info.dy != null) deep.liveDy = info.dy;
+        // composição ao vivo (imóveis)
+        if (info.raioxComposition && info.raioxComposition.length) {
+          deep.properties = info.raioxComposition.slice(0,12).map(c=>({
+            name: c.name || 'Imóvel',
+            city: '—', state: 'BR',
+            grossLeasableAreaM2: Number(String(c.abl||'').replace(/\./g,'').replace(',','.')) || 0,
+            revenuePercent: 0, occupancyPercent: 0, mainTenants: []
+          }));
+        }
+        try { savePortfolioToStorage(); } catch(e){}
+        renderAllViews();
+        renderRaioXDetail(targetTicker);
+      }
+    }).catch(()=>{}).finally(()=>{ delete asset._raioxFetching; });
+    // continua renderizando o genérico enquanto carrega (não retorna)
+  }
+
   const bazin = calculateBazinCeilingPrice(asset.historicalAverageDPA, asset.targetAnnualYield || 0.06);
   const margin = calculateMarginOfSafety(bazin, asset.currentPrice);
 
@@ -1134,7 +1237,17 @@ function renderRaioXDetail(ticker = null) {
     `;
   }
 
+  const monthlyPerShare = asset.monthlyDividendEstimate || (asset.historicalAverageDPA||0)/12;
+  const monthlyTotalLive = monthlyPerShare * (asset.quantity||0);
+  const liveBanner = deep.infoUrl ? `
+    <div class="mb-3 flex flex-wrap items-center gap-2 text-[11px] bg-indigo-500/5 border border-indigo-500/15 rounded-xl px-3 py-2">
+      <i data-lucide="external-link" class="w-3.5 h-3.5 text-indigo-500"></i>
+      <span class="text-gray-600">Dados ao vivo via <strong>${deep.infoUrl.includes('statusinvest')?'StatusInvest':'Investidor10'}</strong>${deep.liveDy!=null?' · DY '+Number(deep.liveDy).toFixed(2)+'%':''} · Provento mensal R$ ${monthlyPerShare.toFixed(2)}/cota · Total R$ ${monthlyTotalLive.toFixed(2)}/mês</span>
+      <a href="${deep.infoUrl}" target="_blank" rel="noopener" class="ml-auto inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-bold">Abrir em ${deep.infoUrl.includes('statusinvest')?'StatusInvest':'Investidor10'} <i data-lucide="arrow-up-right" class="w-3 h-3"></i></a>
+    </div>` : '';
+
   container.innerHTML = `
+    ${liveBanner}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-gray-200 space-y-3">
         <div class="flex items-center justify-between">
@@ -2574,15 +2687,22 @@ function renderPerfLineChart(seriesByTicker) {
       if (map.has(d)) last = map.get(d);
       return last;
     });
+    const color = PERF_COLORS[ci % PERF_COLORS.length];
     datasets.push({
       label: ticker,
       data,
-      borderColor: PERF_COLORS[ci % PERF_COLORS.length],
-      backgroundColor: PERF_COLORS[ci % PERF_COLORS.length] + '22',
+      borderColor: color,
+      backgroundColor: color + '22',
       fill: false,
       tension: perfState.period === '1D' ? 0.15 : 0.3,
       borderWidth: 2,
-      pointRadius: perfState.period === '1D' ? 0 : 0
+      pointRadius: 0,
+      pointHoverRadius: 6,
+      pointHoverBackgroundColor: color,
+      pointHoverBorderColor: '#fff',
+      pointHoverBorderWidth: 2,
+      pointHitRadius: 12,
+      pointStyle: 'circle'
     });
     ci++;
   });
@@ -2596,9 +2716,26 @@ function renderPerfLineChart(seriesByTicker) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: REDUCED_MOTION ? false : { duration: 900, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false },
+      hover: { mode: 'index', intersect: false },
+      elements: {
+        point: { hoverRadius: 6 },
+        line: { capBezierPoints: false }
+      },
       plugins: {
-        legend: { labels: { color: '#6b7280', font: { size: 11 } } },
+        legend: { labels: { color: '#6b7280', font: { size: 11 }, usePointStyle: true, pointStyle: 'circle' } },
         tooltip: {
+          enabled: true,
+          mode: 'index',
+          intersect: false,
+          backgroundColor: 'rgba(255,255,255,0.96)',
+          titleColor: '#111827',
+          bodyColor: '#374151',
+          borderColor: 'rgba(229,231,235,1)',
+          borderWidth: 1,
+          padding: 10,
+          displayColors: true,
           callbacks: {
             label: (ctx) => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(2)} (base 100)`,
             title: (items) => {

@@ -392,10 +392,17 @@
 
       <!-- Assets Table -->
       <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 class="text-base font-semibold text-gray-900 tracking-tight">Ativos da Carteira</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Cotações, preço médio e preço teto de Bazin</p>
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-semibold text-gray-900 tracking-tight">Ativos da Carteira</h2>
+              <p class="text-xs text-gray-500 mt-0.5">Cotações, preço médio, preço teto de Bazin e provento mensal (tempo real via StatusInvest/Investidor10)</p>
+            </div>
+            <button id="btn-refresh-dividends" title="Buscar dividendos e cotações em tempo real (StatusInvest / Investidor10 / Brapi)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 transition active:scale-95 shrink-0">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span>Atualizar dividendos</span>
+              <span id="dividends-last-update" class="hidden sm:inline text-[10px] font-medium opacity-80"></span>
+            </button>
           </div>
           <div class="flex flex-wrap items-center gap-1.5 pb-1 text-xs">
             <button data-filter="ALL" class="asset-filter-btn active-filter flex-1 min-w-[110px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold whitespace-nowrap"><i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"></i> Todos</button>
@@ -420,7 +427,8 @@
                 <th class="py-3 px-4 text-right">Margem Segurança</th>
                 <th class="py-3 px-4 text-right">Yield on Cost</th>
                 <th class="py-3 px-4 text-right">Total (R$)</th>
-                <th class="py-3 px-4 text-center">Ações</th>
+                <th class="py-3 px-4 text-right bg-indigo-500/5">Div. mensal<br><span class="normal-case font-normal text-[10px] text-gray-500">R$ (qtd×cota)</span></th>
+                <th class="py-3 px-4 text-center sticky right-0 bg-gray-100/95 backdrop-blur">Ações</th>
               </tr>
             </thead>
             <tbody id="assets-table-body" class="divide-y divide-gray-200/60"></tbody>
@@ -1167,6 +1175,7 @@
   <script src="src/services/notificationService.js"></script>
   <script src="src/services/pwaService.js"></script>
   <script src="src/services/newsService.js"></script>
+  <script src="src/services/assetInfoService.js"></script>
   <script src="vendor/lucide.min.js"></script>
   <script src="investor-app.js"></script>
 

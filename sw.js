@@ -2,7 +2,7 @@
  * Estratégia: precache do app shell + CDNs, stale-while-revalidate para fontes,
  * network-first com fallback offline para navegações e APIs de cotações.
  */
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 const CACHE_PREFIX = 'previdencia-invest-';
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 
@@ -19,6 +19,7 @@ const PRECACHE_URLS = [
   '/src/services/importerService.js',
   '/src/services/notificationService.js',
   '/src/services/newsService.js',
+  '/src/services/assetInfoService.js',
   '/src/data/modelPortfolio.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -36,7 +37,7 @@ const CDN_ASSETS = [
 
 const CDN_HOSTS = ['cdn.tailwindcss.com', 'unpkg.com', 'cdn.jsdelivr.net'];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-const API_HOSTS = ['brapi.dev', 'query1.finance.yahoo.com', 'query2.finance.yahoo.com', 'supabase.co'];
+const API_HOSTS = ['brapi.dev', 'query1.finance.yahoo.com', 'query2.finance.yahoo.com', 'supabase.co', 'statusinvest.com.br', 'investidor10.com.br'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
