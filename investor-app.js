@@ -112,10 +112,7 @@ function bootstrapApp(user) {
   initTaxPage();
   initDividendsRefresh();
   initMarketTicker();
-  // respeita hash existente (bookmark/refresh) — só força dashboard se não houver hash
-  if (!window.location.hash || window.location.hash === '#') {
-    history.replaceState(null, '', window.location.pathname + window.location.search + '#/dashboard');
-  }
+  // não força dashboard — seleção só após clique do usuário (sem hash = nenhum tab ativo)
   renderAllViews();
   if (window.lucide) { lucide.createIcons({ icons: lucide.icons }); }
 
@@ -803,8 +800,19 @@ let activateTabByButton = null;
 
 function handleHashChange() {
   if (!authGateUnlocked || typeof activateTabByButton !== 'function') return;
-  const route = window.location.hash.replace(/^#\/?/, '') || 'dashboard';
-  const tabId = TAB_HASH_MAP[route] || 'tab-dashboard';
+  const raw = window.location.hash.replace(/^#\/?/, '');
+  if (!raw) {
+    document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active-tab'));
+    document.querySelectorAll('.tab-content').forEach(c=> c.classList.add('hidden'));
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+    return;
+  }
+  const tabId = TAB_HASH_MAP[raw];
+  if (!tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active-tab'));
+    document.querySelectorAll('.tab-content').forEach(c=> c.classList.add('hidden'));
+    return;
+  }
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('data-tab') === tabId);
   if (btn) {
     activateTabByButton(btn, true);

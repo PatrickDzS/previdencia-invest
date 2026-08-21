@@ -28,7 +28,7 @@ import {
  * @param {() => void} onLogout - callback Sair
  */
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard & Carteira", icon: LayoutDashboard, active: true },
+  { id: "dashboard", label: "Dashboard & Carteira", icon: LayoutDashboard },
   { id: "comparador", label: "Comparador de Classes", icon: GitCompare },
   { id: "radar", label: "Radar do Pregão", icon: Target },
   { id: "noticias", label: "Notícias do Mercado", icon: Newspaper },
@@ -73,7 +73,7 @@ function NavButton({ item, isActive, onClick }) {
 }
 
 export default function Sidebar({
-  activeItem = "dashboard",
+  activeItem = null,
   onNavigate,
   onNewAporte,
   onSupport,
@@ -145,7 +145,7 @@ export default function Sidebar({
 }
 
 // Variante compatível com sistema de tabs legado (data-tab) se necessário
-export function SidebarWithTabs({ activeTab = "tab-dashboard", onTabChange, ...rest }) {
+export function SidebarWithTabs({ activeTab = null, onTabChange, ...rest }) {
   const tabToId = {
     "tab-dashboard": "dashboard",
     "tab-classes": "comparador",
@@ -159,7 +159,7 @@ export function SidebarWithTabs({ activeTab = "tab-dashboard", onTabChange, ...r
     "tab-fiscal": "ir",
   };
   const idToTab = Object.fromEntries(Object.entries(tabToId).map(([k, v]) => [v, k]));
-  const activeId = tabToId[activeTab] || "dashboard";
+  const activeId = activeTab ? (tabToId[activeTab] || null) : null;
   const handleNavigate = (id) => {
     if (typeof onTabChange === "function") {
       const tab = idToTab[id];
