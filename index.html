@@ -370,6 +370,16 @@
             <span id="badge-header-notif-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[#ba1a1a] text-white flex items-center justify-center shadow-sm">0</span>
           </button>
         </div>
+
+        <div class="relative" id="relatorio-wrapper">
+          <button id="btn-header-relatorio" aria-haspopup="menu" aria-expanded="false" class="px-3 py-2 rounded-lg hover:bg-[rgba(0,81,63,0.06)] text-[#3e4945] hover:text-[#191c1e] text-[14px] font-medium tracking-[0.01em] transition">Relatório</button>
+          <div id="relatorio-menu" class="hidden absolute right-0 top-full mt-2 w-[200px] glass-card rounded-[12px] shadow-xl z-50 overflow-hidden flex-col border border-[rgba(190,201,195,0.3)]">
+            <button data-tab="tab-relatorio" id="btn-relatorio-view" class="w-full text-left px-4 py-3 text-[14px] font-medium text-[#191c1e] hover:bg-[rgba(0,81,63,0.06)] transition flex items-center gap-2.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-[#4648d4]"></i>
+              <span>Ver relatório</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -454,34 +464,6 @@
     <button id="btn-add-asset" class="mt-[10px] flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg bg-[#00513f] hover:bg-[#006b55] hover:scale-[1.02] text-white text-sm font-semibold tracking-[0.01em] shadow-[0_4px_20px_rgba(0,107,85,0.39)] active:scale-95 transition w-full">
       <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i><span>Novo Aporte</span>
     </button>
-
-    <!-- Relatório – menu sofisticado -->
-    <div class="mt-3 rounded-[12px] border border-[rgba(190,201,195,0.25)] bg-[rgba(255,255,255,0.65)] backdrop-blur-[12px] overflow-hidden">
-      <button id="btn-relatorio-toggle" aria-expanded="false" aria-controls="relatorio-submenu" class="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[rgba(0,81,63,0.04)] transition">
-        <span class="flex items-center gap-2.5">
-          <span class="w-7 h-7 rounded-lg bg-[rgba(70,72,212,0.08)] flex items-center justify-center">
-            <i data-lucide="file-bar-chart" class="w-4 h-4 text-[#4648d4]"></i>
-          </span>
-          <span class="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#3e4945]">Relatório</span>
-        </span>
-        <i data-lucide="chevron-down" id="icon-relatorio-chevron" class="w-4 h-4 text-[#3e4945]/60 transition-transform duration-200"></i>
-      </button>
-      <div id="relatorio-submenu" class="hidden px-2 pb-2 pt-1 space-y-1">
-        <button id="btn-open-importer" title="Importar Extrato B3 ou Planilha CSV" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white hover:bg-[rgba(70,72,212,0.05)] border border-[rgba(190,201,195,0.3)] hover:border-[rgba(70,72,212,0.15)] text-[#3e4945] hover:text-[#191c1e] text-[13px] font-medium transition text-left">
-          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#006b55] shrink-0"></i>
-          <span>Importar</span>
-        </button>
-        <button id="btn-export-backup" title="Exportar Backup JSON" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white hover:bg-[rgba(70,72,212,0.05)] border border-[rgba(190,201,195,0.3)] hover:border-[rgba(70,72,212,0.15)] text-[#3e4945] hover:text-[#191c1e] text-[13px] font-medium transition text-left">
-          <i data-lucide="download" class="w-4 h-4 text-[#3e4945] shrink-0"></i>
-          <span>Backup</span>
-        </button>
-        <button id="btn-import-backup" title="Restaurar Backup JSON" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white hover:bg-[rgba(70,72,212,0.05)] border border-[rgba(190,201,195,0.3)] hover:border-[rgba(70,72,212,0.15)] text-[#3e4945] hover:text-[#191c1e] text-[13px] font-medium transition text-left">
-          <i data-lucide="upload" class="w-4 h-4 text-[#3e4945] shrink-0"></i>
-          <span>Restaurar</span>
-          <input type="file" id="file-import-input" accept=".json" class="hidden">
-        </button>
-      </div>
-    </div>
 
     <!-- Perfil & Configuração -->
     <div class="mt-auto pt-4 border-t border-[rgba(190,201,195,0.5)] space-y-1">
@@ -1082,6 +1064,52 @@
             <span class="text-xs font-bold text-gray-900 block">DARF Total do Mês</span>
             <div id="tax-result-total" class="text-3xl font-bold mono text-gray-900">R$ 0,00</div>
             <p class="text-[10px] text-gray-500 leading-relaxed">Valores são estimativas para controle. Confirme o cálculo com a sua contabilidade ou no programa da Receita antes de pagar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: RELATÓRIO -->
+    <section id="tab-relatorio" class="tab-content hidden space-y-6">
+      <div class="glass-card rounded-[12px] p-6 space-y-6">
+        <div>
+          <h2 class="text-lg font-semibold text-[#191c1e] tracking-tight">Relatório</h2>
+          <p class="mt-2 text-sm text-[#3e4945]/70 leading-relaxed">Gerencie seus dados: importe extratos, faça backup e restaure sua carteira com segurança.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="rounded-[12px] border border-[rgba(190,201,195,0.25)] bg-[rgba(255,255,255,0.7)] p-5 space-y-3 hover:shadow-[0_8px_30px_rgba(70,72,212,0.08)] transition">
+            <div class="w-10 h-10 rounded-xl bg-[rgba(0,107,85,0.08)] flex items-center justify-center">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5 text-[#006b55]"></i>
+            </div>
+            <h3 class="text-[14px] font-semibold text-[#191c1e]">Importar</h3>
+            <p class="text-[12px] text-[#3e4945]/70 leading-relaxed">Importe extrato B3 ou planilha CSV e calcule preço médio automaticamente.</p>
+            <button id="btn-open-importer" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#00513f] hover:bg-[#006b55] hover:scale-[1.02] text-white text-[14px] font-medium tracking-[0.01em] shadow-[0_4px_20px_rgba(0,107,85,0.39)] transition active:scale-95">
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              <span>Importar</span>
+            </button>
+          </div>
+          <div class="rounded-[12px] border border-[rgba(190,201,195,0.25)] bg-[rgba(255,255,255,0.7)] p-5 space-y-3 hover:shadow-[0_8px_30px_rgba(70,72,212,0.08)] transition">
+            <div class="w-10 h-10 rounded-xl bg-[rgba(70,72,212,0.08)] flex items-center justify-center">
+              <i data-lucide="download" class="w-5 h-5 text-[#4648d4]"></i>
+            </div>
+            <h3 class="text-[14px] font-semibold text-[#191c1e]">Backup</h3>
+            <p class="text-[12px] text-[#3e4945]/70 leading-relaxed">Exporte um JSON completo da sua carteira para guardar ou migrar.</p>
+            <button id="btn-export-backup" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-[rgba(70,72,212,0.05)] border border-[rgba(190,201,195,0.3)] hover:border-[rgba(70,72,212,0.15)] text-[#3e4945] hover:text-[#191c1e] text-[14px] font-medium transition">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Backup</span>
+            </button>
+          </div>
+          <div class="rounded-[12px] border border-[rgba(190,201,195,0.25)] bg-[rgba(255,255,255,0.7)] p-5 space-y-3 hover:shadow-[0_8px_30px_rgba(70,72,212,0.08)] transition">
+            <div class="w-10 h-10 rounded-xl bg-[rgba(245,158,11,0.08)] flex items-center justify-center">
+              <i data-lucide="upload" class="w-5 h-5 text-[#b45309]"></i>
+            </div>
+            <h3 class="text-[14px] font-semibold text-[#191c1e]">Restaurar</h3>
+            <p class="text-[12px] text-[#3e4945]/70 leading-relaxed">Restaure um backup JSON e recupere sua carteira.</p>
+            <button id="btn-import-backup" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-[rgba(70,72,212,0.05)] border border-[rgba(190,201,195,0.3)] hover:border-[rgba(70,72,212,0.15)] text-[#3e4945] hover:text-[#191c1e] text-[14px] font-medium transition">
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              <span>Restaurar</span>
+              <input type="file" id="file-import-input" accept=".json" class="hidden">
+            </button>
           </div>
         </div>
       </div>

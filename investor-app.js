@@ -746,25 +746,9 @@ function initMenu() {
     if (e.key === 'Escape') closeMenu();
   });
 
-  // Relatório – menu sofisticado (toggle)
-  const relatorioToggle = document.getElementById('btn-relatorio-toggle');
-  const relatorioSubmenu = document.getElementById('relatorio-submenu');
-  const relatorioChevron = document.getElementById('icon-relatorio-chevron');
-  relatorioToggle?.addEventListener('click', () => {
-    const isHidden = relatorioSubmenu?.classList.contains('hidden');
-    if (!relatorioSubmenu) return;
-    relatorioSubmenu.classList.toggle('hidden', !isHidden);
-    relatorioToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-    if (relatorioChevron) relatorioChevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-  });
-
   // Fecha o drawer no mobile ao selecionar qualquer aba
   document.querySelectorAll('#sidebar-menu .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => closeMenu());
-  });
-  // Mantém drawer aberto ao usar Relatório no mobile (não fecha)
-  document.querySelectorAll('#relatorio-submenu button').forEach(btn => {
-    btn.addEventListener('click', (e) => e.stopPropagation());
   });
 }
 
@@ -783,6 +767,7 @@ const TAB_HASH_MAP = {
   academia: 'tab-academia',
   liberdade: 'tab-liberdade',
   fiscal: 'tab-fiscal',
+  relatorio: 'tab-relatorio',
   perfil: 'tab-perfil',
   config: 'tab-config'
 };
@@ -813,6 +798,13 @@ function handleHashChange() {
       const alerts = generatePortfolioAlerts(portfolioState, (typeof SHARE_CLASSES_DATA !== 'undefined') ? SHARE_CLASSES_DATA : []);
       markAllNotifsRead(alerts);
     }
+  } else if (tabId === 'tab-relatorio') {
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(c => c.classList.add('hidden'));
+    const el = document.getElementById('tab-relatorio');
+    if (el) { el.classList.remove('hidden'); entrance(el, 'fade-in'); }
+    document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active-tab'));
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   }
 }
 
@@ -1038,6 +1030,42 @@ function initNavigation() {
       renderNotifPopup();
       renderNotificationCenter();
     });
+  });
+
+  // Relatório – botão ao lado do sininho, só palavra + menu que redireciona para página
+  const relatorioBtn = document.getElementById('btn-header-relatorio');
+  const relatorioMenu = document.getElementById('relatorio-menu');
+  const relatorioView = document.getElementById('btn-relatorio-view');
+  const relatorioWrapper = document.getElementById('relatorio-wrapper');
+  function closeRelatorioMenu() {
+    if (!relatorioMenu || !relatorioBtn) return;
+    relatorioMenu.classList.add('hidden');
+    relatorioMenu.classList.remove('flex');
+    relatorioBtn.setAttribute('aria-expanded', 'false');
+  }
+  function openRelatorioMenu() {
+    if (!relatorioMenu || !relatorioBtn) return;
+    relatorioMenu.classList.remove('hidden');
+    relatorioMenu.classList.add('flex');
+    relatorioMenu.classList.add('flex-col');
+    relatorioBtn.setAttribute('aria-expanded', 'true');
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+  }
+  relatorioBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (relatorioMenu.classList.contains('hidden')) openRelatorioMenu();
+    else closeRelatorioMenu();
+  });
+  relatorioView?.addEventListener('click', () => {
+    closeRelatorioMenu();
+    window.location.hash = '#/relatorio';
+  });
+  document.addEventListener('click', (e) => {
+    if (!relatorioMenu || relatorioMenu.classList.contains('hidden')) return;
+    if (!relatorioWrapper.contains(e.target)) closeRelatorioMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && relatorioMenu && !relatorioMenu.classList.contains('hidden')) closeRelatorioMenu();
   });
 
   const filterBtns = document.querySelectorAll('.asset-filter-btn');
