@@ -1,14 +1,14 @@
 import {
   LayoutDashboard,
   GitCompare,
-  Target,
+  Radar,
   Newspaper,
   CalendarDays,
-  Microscope,
-  TrendingUp,
+  ScanSearch,
+  ChartLine,
   GraduationCap,
   Award,
-  Receipt,
+  ReceiptText,
   Plus,
   HelpCircle,
   LogOut,
@@ -17,57 +17,49 @@ import {
 /**
  * Sidebar - Menu lateral Previdência Invest
  * Spec: React + Tailwind CSS + lucide-react
- * - Fixo na lateral esquerda (w-[260px]), fundo branco, texto cinza médio com hover verde/cinza escuro
- * - Item ativo: Dashboard & Carteira com fundo verde claro e borda lateral
- * - Organização vertical com espaçamento padrão entre itens
+ * Estilo moderno: chips de ícone arredondados com tint colorido por item
+ * (w-9 h-9 rounded-xl bg-*-50 border-*-100 text-*-600) + label e descrição.
  *
- * @param {string} activeItem - id do item ativo (ex: "dashboard")
+ * @param {string|null} activeItem - id do item ativo (ex: "dashboard")
  * @param {(id: string) => void} onNavigate - callback ao clicar em um item de navegação
  * @param {() => void} onNewAporte - callback do botão "Novo Aporte"
  * @param {() => void} onSupport - callback Suporte
  * @param {() => void} onLogout - callback Sair
  */
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard & Carteira", icon: LayoutDashboard },
-  { id: "comparador", label: "Comparador de Classes", icon: GitCompare },
-  { id: "radar", label: "Radar do Pregão", icon: Target },
-  { id: "noticias", label: "Notícias do Mercado", icon: Newspaper },
-  { id: "dividendos", label: "Mapa do Dividendo", icon: CalendarDays },
-  { id: "raiox", label: "Raio-X de Ativos", icon: Microscope },
-  { id: "performance", label: "Performance", icon: TrendingUp },
-  { id: "academia", label: "Academia do Investidor", icon: GraduationCap },
-  { id: "liberdade", label: "Liberdade Financeira", icon: Award },
-  { id: "ir", label: "IR & DARF", icon: Receipt },
-];
-
-const FOOTER_ITEMS = [
-  { id: "suporte", label: "Suporte", icon: HelpCircle },
-  { id: "sair", label: "Sair", icon: LogOut },
+  { id: "dashboard", label: "Dashboard & Carteira", desc: "Visão geral e ativos", icon: LayoutDashboard, chip: "bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-100" },
+  { id: "comparador", label: "Comparador de Classes", desc: "ON · PN · UNIT", icon: GitCompare, chip: "bg-teal-50 text-teal-600 border-teal-100 group-hover:bg-teal-100" },
+  { id: "radar", label: "Radar do Pregão", desc: "Margem Bazin", icon: Radar, chip: "bg-amber-50 text-amber-500 border-amber-100 group-hover:bg-amber-100" },
+  { id: "noticias", label: "Notícias do Mercado", desc: "Compilado diário", icon: Newspaper, chip: "bg-sky-50 text-sky-600 border-sky-100 group-hover:bg-sky-100" },
+  { id: "dividendos", label: "Mapa do Dividendo", desc: "Janelas de pagamento", icon: CalendarDays, chip: "bg-indigo-50 text-indigo-600 border-indigo-100 group-hover:bg-indigo-100" },
+  { id: "raiox", label: "Raio-X de Ativos", desc: "Análise profunda", icon: ScanSearch, chip: "bg-cyan-50 text-cyan-600 border-cyan-100 group-hover:bg-cyan-100" },
+  { id: "performance", label: "Performance", desc: "Ranking e retornos", icon: ChartLine, chip: "bg-violet-50 text-violet-600 border-violet-100 group-hover:bg-violet-100" },
+  { id: "academia", label: "Academia do Investidor", desc: "Trilhas de estudo", icon: GraduationCap, chip: "bg-emerald-50 text-emerald-700 border-emerald-100 group-hover:bg-emerald-100" },
+  { id: "liberdade", label: "Liberdade Financeira", desc: "Simulador de meta", icon: Award, chip: "bg-pink-50 text-pink-500 border-pink-100 group-hover:bg-pink-100" },
+  { id: "ir", label: "IR & DARF", desc: "Cálculo mensal", icon: ReceiptText, chip: "bg-orange-50 text-orange-500 border-orange-100 group-hover:bg-orange-100" },
 ];
 
 function NavButton({ item, isActive, onClick }) {
   const Icon = item.icon;
-  if (isActive) {
-    return (
-      <button
-        type="button"
-        aria-current="page"
-        onClick={onClick}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-emerald-50 text-emerald-800 border-l-4 border-emerald-600 font-medium text-sm text-left transition-colors"
-      >
-        <Icon className="w-[18px] h-[18px] shrink-0 text-emerald-700" aria-hidden="true" />
-        <span>{item.label}</span>
-      </button>
-    );
-  }
+  const activeCls = isActive
+    ? "bg-[rgba(0,81,63,0.08)] border-[rgba(0,81,63,0.15)]"
+    : "border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)]";
   return (
     <button
       type="button"
+      aria-current={isActive ? "page" : undefined}
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:text-emerald-700 font-medium text-sm text-left transition-colors"
+      className={`group w-full flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border transition-all duration-200 text-sm font-medium text-left ${activeCls}`}
     >
-      <Icon className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
-      <span>{item.label}</span>
+      <span
+        className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-105 ${item.chip}`}
+      >
+        <Icon className="w-[18px] h-[18px]" aria-hidden="true" />
+      </span>
+      <span className="flex flex-col items-start leading-tight min-w-0">
+        <span className="truncate w-full">{item.label}</span>
+        <span className="text-[10px] font-normal text-gray-500 truncate w-full">{item.desc}</span>
+      </span>
     </button>
   );
 }
@@ -80,17 +72,13 @@ export default function Sidebar({
   onLogout,
   className = "",
 }) {
-  const handleNav = (id) => {
-    if (typeof onNavigate === "function") onNavigate(id);
-  };
-
   return (
     <aside
       aria-label="Menu lateral principal"
       className={`fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-gray-100 flex flex-col overflow-hidden z-40 ${className}`}
     >
       {/* Logo / Título */}
-      <div className="px-6 pt-6 pb-5 border-b border-gray-100 shrink-0">
+      <div className="px-5 pt-6 pb-5 border-b border-gray-100 shrink-0">
         <h1 className="text-[18px] font-bold tracking-tight leading-none text-gray-900">
           Previdência <span className="text-emerald-700">Invest</span>
         </h1>
@@ -100,13 +88,13 @@ export default function Sidebar({
       </div>
 
       {/* Navegação principal */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar" aria-label="Navegação principal">
+      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto custom-scrollbar" aria-label="Navegação principal">
         {NAV_ITEMS.map((item) => (
           <NavButton
             key={item.id}
             item={item}
             isActive={activeItem === item.id}
-            onClick={() => handleNav(item.id)}
+            onClick={() => typeof onNavigate === "function" && onNavigate(item.id)}
           />
         ))}
 
@@ -122,21 +110,25 @@ export default function Sidebar({
       </nav>
 
       {/* Rodapé - Suporte e Sair */}
-      <div className="shrink-0 border-t border-gray-100 px-3 py-3 flex flex-col gap-1">
+      <div className="shrink-0 border-t border-gray-100 px-3 py-3 flex flex-col gap-0.5">
         <button
           type="button"
           onClick={onSupport}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 font-medium text-sm text-left transition-colors"
+          className="group w-full flex items-center gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-gray-50 hover:border-gray-200 transition-all duration-200 font-medium text-sm text-left"
         >
-          <HelpCircle className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+          <span className="w-9 h-9 rounded-xl bg-gray-50 text-gray-600 border border-gray-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-gray-100">
+            <HelpCircle className="w-[18px] h-[18px]" aria-hidden="true" />
+          </span>
           <span>Suporte</span>
         </button>
         <button
           type="button"
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-rose-700 hover:bg-rose-50 font-medium text-sm text-left transition-colors"
+          className="group w-full flex items-center gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-rose-50 hover:border-rose-100 transition-all duration-200 font-medium text-sm text-left"
         >
-          <LogOut className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+          <span className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-rose-100">
+            <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
+          </span>
           <span>Sair</span>
         </button>
       </div>
@@ -144,7 +136,7 @@ export default function Sidebar({
   );
 }
 
-// Variante compatível com sistema de tabs legado (data-tab) se necessário
+// Variante compatível com sistema de tabs legado (data-tab)
 export function SidebarWithTabs({ activeTab = null, onTabChange, ...rest }) {
   const tabToId = {
     "tab-dashboard": "dashboard",

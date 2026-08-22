@@ -459,35 +459,95 @@
       <h1 class="font-bold text-[16px] tracking-tight leading-none text-[#191c1e]" style="letter-spacing:-0.02em">Previdência<span class="bg-gradient-to-r from-[#00513f] to-[#006b55] bg-clip-text text-transparent">Invest</span></h1>
     </div>
 
-    <button data-tab="tab-dashboard" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium mt-2">
-      <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i><span>Dashboard & Carteira</span>
+    <button data-tab="tab-dashboard" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium mt-2">
+      <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-emerald-100 group-hover:scale-105">
+        <i data-lucide="layout-dashboard" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Dashboard & Carteira</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Visão geral e ativos</span>
+      </span>
     </button>
-    <button data-tab="tab-classes" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="scale" class="w-4 h-4 text-[#006b55] shrink-0"></i><span>Comparador de Classes</span>
+    <button data-tab="tab-classes" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-teal-100 group-hover:scale-105">
+        <i data-lucide="git-compare" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Comparador de Classes</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">ON · PN · UNIT</span>
+      </span>
     </button>
-    <button data-tab="tab-radar" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="crosshair" class="w-4 h-4 text-[#f59e0b] shrink-0"></i><span>Radar do Pregão</span>
+    <button data-tab="tab-radar" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-amber-100 group-hover:scale-105">
+        <i data-lucide="radar" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Radar do Pregão</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Margem Bazin</span>
+      </span>
     </button>
-    <button data-tab="tab-noticias" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="newspaper" class="w-4 h-4 text-[#06b6d4] shrink-0"></i><span>Notícias do Mercado</span>
+    <button data-tab="tab-noticias" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-sky-100 group-hover:scale-105">
+        <i data-lucide="newspaper" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Notícias do Mercado</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Compilado diário</span>
+      </span>
     </button>
-    <button data-tab="tab-mdi" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="calendar" class="w-4 h-4 text-[#4648d4] shrink-0"></i><span>Mapa do Dividendo</span>
+    <button data-tab="tab-mdi" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-indigo-100 group-hover:scale-105">
+        <i data-lucide="calendar-days" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Mapa do Dividendo</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Janelas de pagamento</span>
+      </span>
     </button>
-    <button data-tab="tab-raiox" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="microscope" class="w-4 h-4 text-[#06b6d4] shrink-0"></i><span>Raio-X de Ativos</span>
+    <button data-tab="tab-raiox" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-cyan-100 group-hover:scale-105">
+        <i data-lucide="scan-search" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Raio-X de Ativos</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Análise profunda</span>
+      </span>
     </button>
-    <button data-tab="tab-performance" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#4648d4] shrink-0"></i><span>Performance</span>
+    <button data-tab="tab-performance" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-violet-100 group-hover:scale-105">
+        <i data-lucide="chart-line" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Performance</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Ranking e retornos</span>
+      </span>
     </button>
-    <button data-tab="tab-academia" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="graduation-cap" class="w-4 h-4 text-[#006b55] shrink-0"></i><span>Academia do Investidor</span>
+    <button data-tab="tab-academia" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-emerald-100 group-hover:scale-105">
+        <i data-lucide="graduation-cap" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Academia do Investidor</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Trilhas de estudo</span>
+      </span>
     </button>
-    <button data-tab="tab-liberdade" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="plane" class="w-4 h-4 text-[#ec4899] shrink-0"></i><span>Liberdade Financeira</span>
+    <button data-tab="tab-liberdade" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-pink-50 text-pink-500 border border-pink-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-pink-100 group-hover:scale-105">
+        <i data-lucide="award" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>Liberdade Financeira</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Simulador de meta</span>
+      </span>
     </button>
-    <button data-tab="tab-fiscal" class="tab-btn flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg border border-transparent hover:bg-[rgba(0,81,63,0.05)] text-[#3e4945] hover:text-[#191c1e] transition text-sm font-medium">
-      <i data-lucide="receipt" class="w-4 h-4 text-[#f59e0b] shrink-0"></i><span>IR & DARF</span>
+    <button data-tab="tab-fiscal" class="tab-btn group flex items-center justify-start gap-3 px-2.5 py-2 rounded-xl border border-transparent hover:bg-[rgba(0,81,63,0.05)] hover:border-[rgba(0,81,63,0.08)] transition-all duration-200 text-sm font-medium">
+      <span class="w-9 h-9 rounded-xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:bg-orange-100 group-hover:scale-105">
+        <i data-lucide="receipt-text" class="w-[18px] h-[18px]"></i>
+      </span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>IR & DARF</span>
+        <span class="text-[10px] font-normal text-[#3e4945]/60">Cálculo mensal</span>
+      </span>
     </button>
 
     <button id="btn-add-asset" class="mt-[10px] flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-lg bg-[#00513f] hover:bg-[#006b55] hover:scale-[1.02] text-white text-sm font-semibold tracking-[0.01em] shadow-[0_4px_20px_rgba(0,107,85,0.39)] active:scale-95 transition w-full">
